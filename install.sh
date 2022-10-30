@@ -308,18 +308,8 @@ print() {
         return
     fi
 
-    if [ "$1" = "-n" ]
-    then
-        shift
-
-        printf "   %s" "$1" >&5
-        printf -- "-- %s" "$1"
-    else
-        printf "   %s
-" "$1" >&5
-        printf -- "-- %s
-" "$1"
-    fi
+    printf "   %s" "$1" >&5
+    printf -- "-- %s" "$1"
 }
 
 print_result() {
@@ -351,6 +341,21 @@ red() {
 
 bold() {
     printf "[1m%s[0m" "$1"
+}
+
+ask_to_proceed() {
+    while true
+    do
+        printf "   Do you want to proceed? (yes or no): " >&5
+        printf -- "-- Do you want to proceed? (yes or no): "
+        read -r response
+
+        case "${response}" in
+            yes) break ;;
+            no)  exit  ;;
+            *) ;;
+        esac
+    done
 }
 
 extract_archive() {
@@ -539,17 +544,7 @@ main() {
             print "Run \"install.sh -h\" to see the installation options."
             print
 
-            while true
-            do
-                print -n "Do you want to proceed? (yes or no): "
-                read -r response
-
-                case "${response}" in
-                    yes) break ;;
-                    no)  exit  ;;
-                    *) ;;
-                esac
-            done
+            ask_to_proceed
 
             print
         fi

@@ -18,6 +18,7 @@ def build():
         "run", "log", "fail",
         "print", "print_result", "print_section",
         "green", "yellow", "red", "bold",
+        "ask_to_proceed",
         "extract_archive",
         "random_number",
     ]

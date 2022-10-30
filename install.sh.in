@@ -190,17 +190,7 @@ main() {
             print "Run \"install.sh -h\" to see the installation options."
             print
 
-            while true
-            do
-                print -n "Do you want to proceed? (yes or no): "
-                read -r response
-
-                case "${response}" in
-                    yes) break ;;
-                    no)  exit  ;;
-                    *) ;;
-                esac
-            done
+            ask_to_proceed
 
             print
         fi
