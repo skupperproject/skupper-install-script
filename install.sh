@@ -26,11 +26,8 @@ fi
 
 # Make the local keyword work with ksh93 and POSIX-style functions
 case "${KSH_VERSION:-}" in
-    *" 93"*)
-        alias local="typeset -x"
-        ;;
-    *)
-        ;;
+    *" 93"*) alias local="typeset -x" ;;
+    *) ;;
 esac
 
 # Make zsh emulate the Bourne shell
@@ -42,11 +39,8 @@ fi
 # This is required to preserve the Windows drive letter in the
 # path to HOME
 case "$(uname)" in
-    CYGWIN*)
-        HOME="$(cygpath --mixed --windows "${HOME}")"
-        ;;
-    *)
-        ;;
+    CYGWIN*) HOME="$(cygpath --mixed --windows "${HOME}")" ;;
+    *) ;;
 esac
 
 assert() {
@@ -93,16 +87,6 @@ check_required_programs() {
     if [ -n "${unavailable_programs}" ]
     then
         fail "Some required programs are not available: ${unavailable_programs%??}" \
-             "${troubleshooting_url}#some-required-programs-are-not-available"
-    fi
-}
-
-check_required_program_sha512sum() {
-    log "Checking for either 'sha512sum' or 'shasum'"
-
-    if ! command -v sha512sum && ! command -v shasum
-    then
-        fail "Some required programs are not available: sha512sum or shasum" \
              "${troubleshooting_url}#some-required-programs-are-not-available"
     fi
 }
@@ -222,9 +206,7 @@ handle_exit() {
             printf "%s Something went wrong.\n\n" "$(red "TROUBLE!")"
         else
             printf "   %s Something went wrong.\n\n" "$(red "TROUBLE!")"
-            printf "== Log ==
-
-"
+            printf "== Log ==\n\n"
 
             sed -e "s/^/  /" < "${log_file}" || :
 
@@ -393,7 +375,6 @@ fetch_latest_skupper_release() {
     assert program_is_available awk
     assert program_is_available curl
     assert program_is_available uname
-    program_is_available sha512sum || program_is_available shasum || assert false
 
     log "Determining your OS an architecture"
 

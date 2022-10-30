@@ -9,7 +9,6 @@ def build():
         "assert",
         "program_is_available",
         "check_required_programs",
-        "check_required_program_sha512sum",
         "check_required_network_resources",
         "check_writable_directories",
         "init_logging", "handle_exit",

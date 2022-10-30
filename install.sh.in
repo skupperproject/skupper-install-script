@@ -60,7 +60,6 @@ fetch_latest_skupper_release() {
     assert program_is_available awk
     assert program_is_available curl
     assert program_is_available uname
-    program_is_available sha512sum || program_is_available shasum || assert false
 
     log "Determining your OS an architecture"
 
