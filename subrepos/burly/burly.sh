@@ -18,13 +18,7 @@
 # under the License.
 #
 
-# Begin boilerplate
-
-# Users of this script can override the troubleshooting URL
-if [ -z "${troubleshooting_url:-}" ]
-then
-    troubleshooting_url="https://github.com/ssorj/burly/blob/main/troubleshooting.md"
-fi
+# BEGIN BOILERPLATE
 
 # Make the local keyword work with ksh93 and POSIX-style functions
 case "${KSH_VERSION:-}" in
@@ -45,9 +39,8 @@ case "$(uname)" in
     *) ;;
 esac
 
-# End boilerplate
+# END BOILERPLATE
 
-# func <program>
 program_is_available() {
     local program="${1}"
 
@@ -56,7 +49,6 @@ program_is_available() {
     command -v "${program}"
 }
 
-# func <port>
 port_is_active() {
     local port="$1"
 
@@ -72,7 +64,6 @@ port_is_active() {
     fi
 }
 
-# func <port>
 await_port_is_active() {
     local port="$1"
     local i=0
@@ -93,7 +84,6 @@ await_port_is_active() {
     done
 }
 
-# func <port>
 await_port_is_free() {
     local port="$1"
     local i=0
@@ -114,7 +104,6 @@ await_port_is_free() {
     done
 }
 
-# func <string> <glob>
 string_is_match() {
     local string="$1"
     local glob="$2"
@@ -132,7 +121,6 @@ random_number() {
     printf "%s%s" "$(date +%s)" "$$"
 }
 
-# func <archive-file> <output-dir>
 extract_archive() {
     local archive_file="$1"
     local output_dir="$2"
@@ -243,7 +231,7 @@ generate_password() {
     assert program_is_available head
     assert program_is_available tr
 
-    head -c 1024 /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 16
+    head -c 1024 /dev/urandom | LC_ALL=C tr -dc "a-z0-9" | head -c 16
 }
 
 enable_strict_mode() {
@@ -327,8 +315,6 @@ init_logging() {
     # If verbose, suppress the default display output and log
     # everything to the console. Otherwise, capture logging and
     # command output to the log file.
-    #
-    # XXX Use tee to capture to the log file at the same time?
     if [ -n "${verbose}" ]
     then
         exec 5> /dev/null
@@ -337,7 +323,6 @@ init_logging() {
     fi
 }
 
-# func [<dir>...]
 check_writable_directories() {
     log "Checking for permission to write to the install directories"
 
@@ -373,7 +358,6 @@ check_writable_directories() {
     fi
 }
 
-# func [<program>...]
 check_required_programs() {
     log "Checking for required programs"
 
@@ -408,7 +392,6 @@ check_required_program_sha512sum() {
     fi
 }
 
-# func [<port>...]
 check_required_ports() {
     log "Checking for required ports"
 
@@ -433,7 +416,6 @@ check_required_ports() {
     fi
 }
 
-# func [<url>...]
 check_required_network_resources() {
     log "Checking for required network resources"
 
@@ -470,7 +452,6 @@ check_java() {
     fi
 }
 
-# func <backup-dir> <config-dir> <share-dir> <state-dir> [<bin-file>...]
 save_backup() {
     local backup_dir="$1"
     local config_dir="$2"

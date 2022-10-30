@@ -1,5 +1,7 @@
 @command
 def test(verbose=False, coverage=False):
+    extract("assert")
+
     if not WINDOWS:
         check_program("bats")
 
@@ -47,7 +49,7 @@ def extract(*function_names):
 def extract_boilerplate(code):
     import re
 
-    boilerplate = re.search(r"# Begin boilerplate\n(.*?)\n# End boilerplate", code, re.DOTALL)
+    boilerplate = re.search(r"# BEGIN BOILERPLATE\n(.*?)\n# END BOILERPLATE", code, re.DOTALL)
 
     if boilerplate:
         return boilerplate.group(1).strip()
