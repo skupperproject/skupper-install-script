@@ -7,24 +7,19 @@ def build():
 
     function_names = [
         "assert",
-        "check_writable_directories",
+        "program_is_available",
         "check_required_programs",
         "check_required_program_sha512sum",
         "check_required_network_resources",
+        "check_writable_directories",
+        "init_logging", "handle_exit",
         "enable_debug_mode",
         "enable_strict_mode",
-        "extract_archive",
-        "fail",
+        "run", "log", "fail",
+        "print", "print_result", "print_section",
         "green", "yellow", "red", "bold",
-        "handle_exit",
-        "init_logging",
-        "log",
-        "print",
-        "print_result",
-        "print_section",
-        "program_is_available",
+        "extract_archive",
         "random_number",
-        "run",
     ]
 
     burly_out = [boilerplate]

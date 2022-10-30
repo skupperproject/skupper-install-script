@@ -66,41 +66,12 @@ assert() {
     fi
 }
 
-check_writable_directories() {
-    log "Checking for permission to write to the install directories"
+program_is_available() {
+    local program="${1}"
 
-    local dirs="$*"
-    local dir=
-    local base_dir=
-    local unwritable_dirs=
+    assert test -n "${program}"
 
-    for dir in ${dirs}
-    do
-        log "Checking directory '${dir}'"
-
-        base_dir="${dir}"
-
-        while [ ! -e "${base_dir}" ]
-        do
-            base_dir="$(dirname "${base_dir}")"
-        done
-
-        if [ -w "${base_dir}" ]
-        then
-            printf "Directory '%s' is writable
-" "${base_dir}"
-        else
-            printf "Directory '%s' is not writeable
-" "${base_dir}"
-            unwritable_dirs="${unwritable_dirs}${base_dir}, "
-        fi
-    done
-
-    if [ -n "${unwritable_dirs}" ]
-    then
-        fail "Some install directories are not writable: ${unwritable_dirs%??}" \
-             "${troubleshooting_url}#some-install-directories-are-not-writable"
-    fi
+    command -v "${program}"
 }
 
 check_required_programs() {
@@ -163,112 +134,40 @@ check_required_network_resources() {
     fi
 }
 
-enable_debug_mode() {
-    # Print the input commands and their expanded form to the console
-    set -vx
+check_writable_directories() {
+    log "Checking for permission to write to the install directories"
 
-    if [ -n "${BASH:-}" ]
-    then
-        # Bash offers more details
-        export PS4='[0;33m${BASH_SOURCE}:${LINENO}:[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-    fi
-}
+    local dirs="$*"
+    local dir=
+    local base_dir=
+    local unwritable_dirs=
 
-enable_strict_mode() {
-    # No clobber, exit on error, and fail on unbound variables
-    set -Ceu
+    for dir in ${dirs}
+    do
+        log "Checking directory '${dir}'"
 
-    if [ -n "${BASH:-}" ]
-    then
-        # Inherit traps, fail fast in pipes, enable POSIX mode, and
-        # disable brace expansion
-        #
-        # shellcheck disable=SC3040,SC3041 # We know this is Bash in this case
-        set -E -o pipefail -o posix +o braceexpand
+        base_dir="${dir}"
 
-        assert test -n "${POSIXLY_CORRECT}"
-    fi
-}
+        while [ ! -e "${base_dir}" ]
+        do
+            base_dir="$(dirname "${base_dir}")"
+        done
 
-extract_archive() {
-    local archive_file="$1"
-    local output_dir="$2"
-
-    assert test -f "${archive_file}"
-    assert test -d "${output_dir}"
-    assert program_is_available gzip
-    assert program_is_available tar
-
-    gzip -dc "${archive_file}" | (cd "${output_dir}" && tar xf -)
-}
-
-fail() {
-    printf "   %s %s
-
-" "$(red "ERROR:")" "$1" >&5
-    log "$(red "ERROR:") $1"
-
-    if [ -n "${2:-}" ]
-    then
-        printf "   See %s
-
-" "$2" >&5
-        log "See $2"
-    fi
-
-    suppress_trouble_report=1
-
-    exit 1
-}
-
-green() {
-    printf "[0;32m%s[0m" "$1"
-}
-
-yellow() {
-    printf "[0;33m%s[0m" "$1"
-}
-
-red() {
-    printf "[1;31m%s[0m" "$1"
-}
-
-bold() {
-    printf "[1m%s[0m" "$1"
-}
-
-handle_exit() {
-    # This must go first
-    local exit_code=$?
-
-    local log_file="$1"
-    local verbose="$2"
-
-    # Restore stdout and stderr
-    exec 1>&7
-    exec 2>&8
-
-    # shellcheck disable=SC2181 # This is intentionally indirect
-    if [ "${exit_code}" != 0 ] && [ -z "${suppress_trouble_report:-}" ]
-    then
-        if [ -n "${verbose}" ]
+        if [ -w "${base_dir}" ]
         then
-            printf "%s Something went wrong.
-
-" "$(red "TROUBLE!")"
+            printf "Directory '%s' is writable
+" "${base_dir}"
         else
-            printf "   %s Something went wrong.
-
-" "$(red "TROUBLE!")"
-            printf "== Log ==
-
-"
-
-            sed -e "s/^/  /" < "${log_file}" || :
-
-            printf "
-"
+            printf "Directory '%s' is not writeable
+" "${base_dir}"
+            unwritable_dirs="${unwritable_dirs}${base_dir}, "
         fi
+    done
+
+    if [ -n "${unwritable_dirs}" ]
+    then
+        fail "Some install directories are not writable: ${unwritable_dirs%??}" \
+             "${troubleshooting_url}#some-install-directories-are-not-writable"
     fi
 }
 
@@ -307,9 +206,96 @@ init_logging() {
     fi
 }
 
+handle_exit() {
+    # This must go first
+    local exit_code=$?
+
+    local log_file="$1"
+    local verbose="$2"
+
+    # Restore stdout and stderr
+    exec 1>&7
+    exec 2>&8
+
+    # shellcheck disable=SC2181 # This is intentionally indirect
+    if [ "${exit_code}" != 0 ] && [ -z "${suppress_trouble_report:-}" ]
+    then
+        if [ -n "${verbose}" ]
+        then
+            printf "%s Something went wrong.
+
+" "$(red "TROUBLE!")"
+        else
+            printf "   %s Something went wrong.
+
+" "$(red "TROUBLE!")"
+            printf "== Log ==
+
+"
+
+            sed -e "s/^/  /" < "${log_file}" || :
+
+            printf "
+"
+        fi
+    fi
+}
+
+enable_debug_mode() {
+    # Print the input commands and their expanded form to the console
+    set -vx
+
+    if [ -n "${BASH:-}" ]
+    then
+        # Bash offers more details
+        export PS4='[0;33m${BASH_SOURCE}:${LINENO}:[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    fi
+}
+
+enable_strict_mode() {
+    # No clobber, exit on error, and fail on unbound variables
+    set -Ceu
+
+    if [ -n "${BASH:-}" ]
+    then
+        # Inherit traps, fail fast in pipes, enable POSIX mode, and
+        # disable brace expansion
+        #
+        # shellcheck disable=SC3040,SC3041 # We know this is Bash in this case
+        set -E -o pipefail -o posix +o braceexpand
+
+        assert test -n "${POSIXLY_CORRECT}"
+    fi
+}
+
+run() {
+    printf -- "-- Running '%s'
+" "$*" >&2
+    "$@"
+}
+
 log() {
     printf -- "-- %s
 " "$1"
+}
+
+fail() {
+    printf "   %s %s
+
+" "$(red "ERROR:")" "$1" >&5
+    log "$(red "ERROR:") $1"
+
+    if [ -n "${2:-}" ]
+    then
+        printf "   See %s
+
+" "$2" >&5
+        log "See $2"
+    fi
+
+    suppress_trouble_report=1
+
+    exit 1
 }
 
 print() {
@@ -351,22 +337,36 @@ print_section() {
 " "$1"
 }
 
-program_is_available() {
-    local program="${1}"
+green() {
+    printf "[0;32m%s[0m" "$1"
+}
 
-    assert test -n "${program}"
+yellow() {
+    printf "[0;33m%s[0m" "$1"
+}
 
-    command -v "${program}"
+red() {
+    printf "[1;31m%s[0m" "$1"
+}
+
+bold() {
+    printf "[1m%s[0m" "$1"
+}
+
+extract_archive() {
+    local archive_file="$1"
+    local output_dir="$2"
+
+    assert test -f "${archive_file}"
+    assert test -d "${output_dir}"
+    assert program_is_available gzip
+    assert program_is_available tar
+
+    gzip -dc "${archive_file}" | (cd "${output_dir}" && tar xf -)
 }
 
 random_number() {
     printf "%s%s" "$(date +%s)" "$$"
-}
-
-run() {
-    printf -- "-- Running '%s'
-" "$*" >&2
-    "$@"
 }
 
 usage() {
@@ -390,7 +390,7 @@ Options:
 
 Installation schemes:
   home          Install to ~/.local/bin
-  opt           Install to /opt/skupper
+  opt           Install to /opt/skupper/bin
 EOF
 
     if [ -n "${error}" ]
@@ -447,7 +447,6 @@ fetch_latest_skupper_release() {
 
     local release_file_name="skupper-cli-${release_version}-${operating_system}-${architecture}.tgz"
     release_file="${output_dir}/${release_file_name}"
-    # local release_file_checksum="${release_file}.sha512"
 
     if [ ! -e "${release_file}" ]
     then
@@ -460,33 +459,6 @@ fetch_latest_skupper_release() {
     fi
 
     printf "Archive file: %s\n" "${release_file}"
-
-    # log "Downloading the checksum file"
-
-    # run curl -sf --show-error -o "${release_file_checksum}" \
-    #     "https://downloads.apache.org/activemq/activemq-artemis/${release_version}/${release_file_name}.sha512"
-
-    # printf "Checksum file: %s\n" "${release_file_checksum}"
-
-    # log "Verifying the release archive"
-
-    # if command -v sha512sum
-    # then
-    #     if ! run sha512sum -c "${release_file_checksum}"
-    #     then
-    #         fail "The checksum does not match the downloaded release archive" \
-    #              "${troubleshooting_url}#the-checksum-does-not-match-the-downloaded-release-archive"
-    #     fi
-    # elif command -v shasum
-    # then
-    #     if ! run shasum -a 512 -c "${release_file_checksum}"
-    #     then
-    #         fail "The checksum does not match the downloaded release archive" \
-    #              "${troubleshooting_url}#the-checksum-does-not-match-the-downloaded-release-archive"
-    #     fi
-    # else
-    #     assert false
-    # fi
 
     assert test -n "${release_version}"
     assert test -f "${release_file}"
@@ -537,13 +509,11 @@ main() {
 
         check_required_programs awk curl gzip tar
 
-        check_required_program_sha512sum
-
         check_required_network_resources "https://github.com/"
 
         print_result "OK"
 
-        print_section "Downloading and verifying the latest release"
+        print_section "Downloading the latest release"
 
         fetch_latest_skupper_release "${work_dir}"
 
@@ -558,7 +528,7 @@ main() {
         then
             print_section "Preparing to install"
 
-            print "This script will install the Skupper command-line tool to:"
+            print "This script will install the Skupper command to:"
             print
             print "    ${skupper_bin_dir}"
             print
@@ -584,16 +554,15 @@ main() {
             print
         fi
 
-        # if [ -e "${artemis_config_dir}" ] || [ -e "${artemis_home_dir}" ] || [ -e "${artemis_instance_dir}" ]
-        # then
-        #     print_section "Saving the existing installation to a backup"
+        if [ -e "${skupper_bin_dir}/skupper" ]
+        then
+            print_section "Saving the existing installation to a backup"
 
-        #     save_backup "${backup_dir}" \
-        #                 "${artemis_config_dir}" "${artemis_home_dir}" "${artemis_instance_dir}" \
-        #                 "${artemis_bin_dir}/artemis" "${artemis_bin_dir}/artemis-service"
+            mkdir -p "${backup_dir}"
+            mv "${skupper_bin_dir}/skupper" "${backup_dir}"
 
-        #     print_result "OK"
-        # fi
+            print_result "OK"
+        fi
 
         print_section "Installing the Skupper command"
 
@@ -607,7 +576,7 @@ main() {
 
         mkdir -p "${skupper_bin_dir}"
 
-        cp skupper "${skupper_bin_dir}"
+        mv skupper "${skupper_bin_dir}"
 
         print_result "OK"
 
@@ -625,12 +594,8 @@ main() {
 
         print "The Skupper command is now installed."
         print
-        print "    Version:           ${release_version}"
-        print
-
-        print "The Skupper command is available at:"
-        print
-        print "    ${skupper_bin_dir}/skupper"
+        print "    Version:  ${release_version}"
+        print "    Path:     ${skupper_bin_dir}/skupper"
         print
 
         if [ "$(command -v skupper)" != "${skupper_bin_dir}/skupper" ]
@@ -654,7 +619,7 @@ main() {
         print
         print "To uninstall Skupper, use:"
         print
-        print "    curl -f https://skupper.io/uninstall.sh | sh"
+        print "    curl https://skupper.io/uninstall.sh | sh"
         print
     } >&6 2>&6
 }
