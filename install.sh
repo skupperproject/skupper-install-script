@@ -60,8 +60,7 @@ assert() {
 
     if ! "$@" > /dev/null 2>&1
     then
-        printf "%s %s assert %s
-" "$(red "ASSERTION FAILED:")" "$(yellow "${location}")" "$*" >&2
+        printf "%s %s assert %s\n" "$(red "ASSERTION FAILED:")" "$(yellow "${location}")" "$*" >&2
         exit 1
     fi
 }
@@ -155,11 +154,9 @@ check_writable_directories() {
 
         if [ -w "${base_dir}" ]
         then
-            printf "Directory '%s' is writable
-" "${base_dir}"
+            printf "Directory '%s' is writable\n" "${base_dir}"
         else
-            printf "Directory '%s' is not writeable
-" "${base_dir}"
+            printf "Directory '%s' is not writeable\n" "${base_dir}"
             unwritable_dirs="${unwritable_dirs}${base_dir}, "
         fi
     done
@@ -222,21 +219,16 @@ handle_exit() {
     then
         if [ -n "${verbose}" ]
         then
-            printf "%s Something went wrong.
-
-" "$(red "TROUBLE!")"
+            printf "%s Something went wrong.\n\n" "$(red "TROUBLE!")"
         else
-            printf "   %s Something went wrong.
-
-" "$(red "TROUBLE!")"
+            printf "   %s Something went wrong.\n\n" "$(red "TROUBLE!")"
             printf "== Log ==
 
 "
 
             sed -e "s/^/  /" < "${log_file}" || :
 
-            printf "
-"
+            printf "\n"
         fi
     fi
 }
@@ -269,27 +261,21 @@ enable_strict_mode() {
 }
 
 run() {
-    printf -- "-- Running '%s'
-" "$*" >&2
+    printf -- "-- Running '%s'\n" "$*" >&2
     "$@"
 }
 
 log() {
-    printf -- "-- %s
-" "$1"
+    printf -- "-- %s\n" "$1"
 }
 
 fail() {
-    printf "   %s %s
-
-" "$(red "ERROR:")" "$1" >&5
+    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
     log "$(red "ERROR:") $1"
 
     if [ -n "${2:-}" ]
     then
-        printf "   See %s
-
-" "$2" >&5
+        printf "   See %s\n\n" "$2" >&5
         log "See $2"
     fi
 
@@ -301,30 +287,23 @@ fail() {
 print() {
     if [ "$#" = 0 ]
     then
-        printf "
-" >&5
-        printf -- "--
-"
+        printf "\n" >&5
+        printf -- "--\n"
         return
     fi
 
-    printf "   %s" "$1" >&5
-    printf -- "-- %s" "$1"
+    printf "   %s\n" "$1" >&5
+    printf -- "-- %s\n" "$1"
 }
 
 print_result() {
-    printf "   %s
-
-" "$(green "$1")" >&5
+    printf "   %s\n\n" "$(green "$1")" >&5
     log "Result: $(green "$1")"
 }
 
 print_section() {
-    printf "== %s ==
-
-" "$(bold "$1")" >&5
-    printf "== %s
-" "$1"
+    printf "== %s ==\n\n" "$(bold "$1")" >&5
+    printf "== %s\n" "$1"
 }
 
 green() {
