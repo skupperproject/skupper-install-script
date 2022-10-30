@@ -31,3 +31,34 @@ def lint():
 def clean():
     remove("build")
     remove("coverage")
+
+@command
+def extract(*function_names):
+    code = read("burly.sh")
+
+    boilerplate = extract_boilerplate(code)
+    funcs = extract_functions(code)
+
+    print(boilerplate)
+
+    for name in function_names:
+        print(funcs[name])
+
+def extract_boilerplate(code):
+    import re
+
+    boilerplate = re.search(r"# Begin boilerplate\n(.*?)\n# End boilerplate", code, re.DOTALL)
+
+    if boilerplate:
+        return boilerplate.group(1).strip()
+
+def extract_functions(code):
+    import re
+
+    functions = dict()
+    matches = re.finditer(r"\n(\w+)\s*\(\)\s+{\n.*?\n}", code, re.DOTALL)
+
+    for match in matches:
+        functions[match.group(1)] = match.group(0)
+
+    return functions

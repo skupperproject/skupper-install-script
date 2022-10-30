@@ -1,3 +1,5 @@
+# Begin boilerplate
+
 # Users of this script can override the troubleshooting URL
 if [ -z "${troubleshooting_url:-}" ]
 then
@@ -28,6 +30,8 @@ case "$(uname)" in
     *)
         ;;
 esac
+
+# End boilerplate
 
 # func <program>
 program_is_available() {
