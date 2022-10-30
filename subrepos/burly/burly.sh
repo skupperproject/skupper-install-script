@@ -184,16 +184,8 @@ print() {
         return
     fi
 
-    if [ "$1" = "-n" ]
-    then
-        shift
-
-        printf "   %s" "$1" >&5
-        printf -- "-- %s" "$1"
-    else
-        printf "   %s\n" "$1" >&5
-        printf -- "-- %s\n" "$1"
-    fi
+    printf "   %s" "$1" >&5
+    printf -- "-- %s" "$1"
 }
 
 print_section() {
@@ -204,6 +196,21 @@ print_section() {
 print_result() {
     printf "   %s\n\n" "$(green "$1")" >&5
     log "Result: $(green "$1")"
+}
+
+ask_to_proceed() {
+    while true
+    do
+        printf "   Do you want to proceed? (yes or no): " >&5
+        printf -- "-- Do you want to proceed? (yes or no): "
+        read -r response
+
+        case "${response}" in
+            yes) break ;;
+            no)  exit  ;;
+            *) ;;
+        esac
+    done
 }
 
 fail() {
