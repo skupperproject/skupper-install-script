@@ -184,8 +184,8 @@ print() {
         return
     fi
 
-    printf "   %s" "$1" >&5
-    printf -- "-- %s" "$1"
+    printf "   %s\n" "$1" >&5
+    printf -- "-- %s\n" "$1"
 }
 
 print_section() {
