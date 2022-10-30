@@ -1,0 +1,55 @@
+@command
+def build():
+    burly = read("burly.sh").strip()
+
+    install_sh_in = read("install.sh.in")
+    install_sh = replace(install_sh_in, "@burly@", burly)
+
+    # uninstall_sh_in = read("uninstall.sh.in")
+    # uninstall_sh = replace(uninstall_sh_in, "@burly@", burly)
+
+    write("install.sh", install_sh)
+    # write("uninstall.sh", uninstall_sh)
+
+@command
+def test(shell="sh", verbose=False, debug=False):
+    check_program(shell)
+
+    build()
+
+    if debug:
+        ENV["DEBUG"] = "1"
+
+    try:
+        run(f"{shell} {'-o igncr' if WINDOWS else ''} install.sh {'-v' if verbose else ''}".strip())
+        # run(f"{shell} {'-o igncr' if WINDOWS else ''} uninstall.sh {'-v' if verbose else ''}".strip())
+    finally:
+        if debug:
+            del ENV["DEBUG"]
+
+# @command
+# def big_test(verbose=False, debug=False):
+#     test(verbose=True, debug=debug)
+#     test(verbose=False, debug=debug)
+
+#     test(verbose=verbose, debug=True)
+#     test(verbose=verbose, debug=False)
+
+#     for shell in "ash", "bash", "dash", "ksh", "mksh", "yash", "zsh":
+#         if which(shell):
+#             test(shell=shell, verbose=verbose, debug=debug)
+
+#     with working_env():
+#         run(f"sh install.sh") # No existing installation and no existing backup
+#         run(f"sh install.sh") # Creates a backup
+#         run(f"sh install.sh") # Backs up the backup
+
+#         run(f"sh uninstall.sh")
+
+@command
+def lint():
+    check_program("shellcheck")
+
+    build()
+
+    run("shellcheck --enable all --exclude SC3043 install.sh uninstall.sh")
