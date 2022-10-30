@@ -50,10 +50,10 @@ port_is_active() {
 
     if nc -z localhost "${port}"
     then
-        printf "Port %s is active\n" "${port}"
+        printf "Port %s is active\\n" "${port}"
         return 0
     else
-        printf "Port %s is free\n" "${port}"
+        printf "Port %s is free\\n" "${port}"
         return 1
     fi
 }
@@ -146,17 +146,17 @@ assert() {
 
     if ! "$@" > /dev/null 2>&1
     then
-        printf "%s %s assert %s\n" "$(red "ASSERTION FAILED:")" "$(yellow "${location}")" "$*" >&2
+        printf "%s %s assert %s\\n" "$(red "ASSERTION FAILED:")" "$(yellow "${location}")" "$*" >&2
         exit 1
     fi
 }
 
 log() {
-    printf -- "-- %s\n" "$1"
+    printf -- "-- %s\\n" "$1"
 }
 
 run() {
-    printf -- "-- Running '%s'\n" "$*" >&2
+    printf -- "-- Running '%s'\\n" "$*" >&2
     "$@"
 }
 
@@ -179,22 +179,22 @@ yellow() {
 print() {
     if [ "$#" = 0 ]
     then
-        printf "\n" >&5
-        printf -- "--\n"
+        printf "\\n" >&5
+        printf -- "--\\n"
         return
     fi
 
-    printf "   %s\n" "$1" >&5
-    printf -- "-- %s\n" "$1"
+    printf "   %s\\n" "$1" >&5
+    printf -- "-- %s\\n" "$1"
 }
 
 print_section() {
-    printf "== %s ==\n\n" "$(bold "$1")" >&5
-    printf "== %s\n" "$1"
+    printf "== %s ==\\n\\n" "$(bold "$1")" >&5
+    printf "== %s\\n" "$1"
 }
 
 print_result() {
-    printf "   %s\n\n" "$(green "$1")" >&5
+    printf "   %s\\n\\n" "$(green "$1")" >&5
     log "Result: $(green "$1")"
 }
 
@@ -214,12 +214,12 @@ ask_to_proceed() {
 }
 
 fail() {
-    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
+    printf "   %s %s\\n\\n" "$(red "ERROR:")" "$1" >&5
     log "$(red "ERROR:") $1"
 
     if [ -n "${2:-}" ]
     then
-        printf "   See %s\n\n" "$2" >&5
+        printf "   See %s\\n\\n" "$2" >&5
         log "See $2"
     fi
 
@@ -279,14 +279,14 @@ handle_exit() {
     then
         if [ -n "${verbose}" ]
         then
-            printf "%s Something went wrong.\n\n" "$(red "TROUBLE!")"
+            printf "%s Something went wrong.\\n\\n" "$(red "TROUBLE!")"
         else
-            printf "   %s Something went wrong.\n\n" "$(red "TROUBLE!")"
+            printf "   %s Something went wrong.\\n\\n" "$(red "TROUBLE!")"
             printf "== Log ==\n\n"
 
             sed -e "s/^/  /" < "${log_file}" || :
 
-            printf "\n"
+            printf "\\n"
         fi
     fi
 }
@@ -349,9 +349,9 @@ check_writable_directories() {
 
         if [ -w "${base_dir}" ]
         then
-            printf "Directory '%s' is writable\n" "${base_dir}"
+            printf "Directory '%s' is writable\\n" "${base_dir}"
         else
-            printf "Directory '%s' is not writeable\n" "${base_dir}"
+            printf "Directory '%s' is not writeable\\n" "${base_dir}"
             unwritable_dirs="${unwritable_dirs}${base_dir}, "
         fi
     done
