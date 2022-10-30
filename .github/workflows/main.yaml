@@ -17,26 +17,22 @@ jobs:
   #       with:
   #         packages: nc
   #     - run: python plano test --verbose
-  # fedora:
-  #   runs-on: ubuntu-latest
-  #   container: fedora:latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: dnf -y install busybox curl dash ksh mksh nc python /bin/ps sudo tar yash zsh java-17-openjdk-headless
-  #     - run: cd /usr/bin && ln -s busybox ash
-  #     - run: ./plano big-test --verbose
-  # macos:
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-java@v3
-  #       with:
-  #         distribution: "temurin"
-  #         java-version: "17"
-  #     - uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.x"
-  #     - run: ./plano big-test --verbose
+  fedora:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: dnf -y install busybox curl dash ksh mksh nc python /bin/ps sudo tar yash zsh
+      - run: cd /usr/bin && ln -s busybox ash
+      - run: ./plano big-test --verbose
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - run: ./plano big-test --verbose
   ubuntu:
     runs-on: ubuntu-latest
     container: ubuntu:latest
