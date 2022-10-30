@@ -429,8 +429,8 @@ fetch_latest_skupper_release() {
         *)       fail "Unknown architecture: $(uname -m)" ;;
     esac
 
-    printf "Operating system: %s\n" "$operating_system"
-    printf "Architecture: %s\n" "$architecture"
+    printf "Operating system: %s\n" "${operating_system}"
+    printf "Architecture: %s\n" "${architecture}"
 
     local release_version_file="${output_dir}/release-version.txt"
 
