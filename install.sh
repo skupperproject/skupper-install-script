@@ -18,6 +18,8 @@
 # under the License.
 #
 
+# Begin boilerplate
+
 # Users of this script can override the troubleshooting URL
 if [ -z "${troubleshooting_url:-}" ]
 then
@@ -49,6 +51,8 @@ case "$(uname)" in
         ;;
 esac
 
+# End boilerplate
+
 # func <program>
 program_is_available() {
     local program="${1}"
@@ -56,6 +60,84 @@ program_is_available() {
     assert test -n "${program}"
 
     command -v "${program}"
+}
+
+# func <port>
+port_is_active() {
+    local port="$1"
+
+    assert program_is_available nc
+
+    if nc -z localhost "${port}"
+    then
+        printf "Port %s is active
+" "${port}"
+        return 0
+    else
+        printf "Port %s is free
+" "${port}"
+        return 1
+    fi
+}
+
+# func <port>
+await_port_is_active() {
+    local port="$1"
+    local i=0
+
+    log "Waiting for port ${port} to open"
+
+    while ! port_is_active "${port}"
+    do
+        i=$((i + 1))
+
+        if [ "${i}" = 30 ]
+        then
+            log "Timed out waiting for port ${port} to open"
+            return 1
+        fi
+
+        sleep 2
+    done
+}
+
+# func <port>
+await_port_is_free() {
+    local port="$1"
+    local i=0
+
+    log "Waiting for port ${port} to close"
+
+    while port_is_active "${port}"
+    do
+        i=$((i + 1))
+
+        if [ "${i}" = 30 ]
+        then
+            log "Timed out waiting for port ${port} to close"
+            return 1
+        fi
+
+        sleep 2
+    done
+}
+
+# func <string> <glob>
+string_is_match() {
+    local string="$1"
+    local glob="$2"
+
+    assert test -n "${glob}"
+
+    # shellcheck disable=SC2254 # We want the glob
+    case "${string}" in
+        ${glob})
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
 }
 
 random_number() {
@@ -175,6 +257,14 @@ fail() {
     suppress_trouble_report=1
 
     exit 1
+}
+
+generate_password() {
+    assert test -e /dev/urandom
+    assert program_is_available head
+    assert program_is_available tr
+
+    head -c 1024 /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | head -c 16
 }
 
 enable_strict_mode() {
@@ -348,6 +438,31 @@ check_required_program_sha512sum() {
     fi
 }
 
+# func [<port>...]
+check_required_ports() {
+    log "Checking for required ports"
+
+    local ports="$*"
+    local port=
+    local unavailable_ports=
+
+    for port in ${ports}
+    do
+        log "Checking port ${port}"
+
+        if port_is_active "${port}"
+        then
+            unavailable_ports="${unavailable_ports}${port}, "
+        fi
+    done
+
+    if [ -n "${unavailable_ports}" ]
+    then
+        fail "Some required ports are in use by something else: ${unavailable_ports%??}" \
+             "${troubleshooting_url}#some-required-ports-are-in-use-by-something-else"
+    fi
+}
+
 # func [<url>...]
 check_required_network_resources() {
     log "Checking for required network resources"
@@ -372,6 +487,16 @@ check_required_network_resources() {
     then
         fail "Some required network resources are not available: ${unavailable_urls%??}" \
              "${troubleshooting_url}#some-required-network-resources-are-not-available"
+    fi
+}
+
+check_java() {
+    log "Checking the Java installation"
+
+    if ! java --version
+    then
+        fail "Java is available, but it is not working" \
+             "${troubleshooting_url}#java-is-available-but-it-is-not-working"
     fi
 }
 
