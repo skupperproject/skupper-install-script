@@ -18,11 +18,7 @@
 # under the License.
 #
 
-# Users of this script can override the troubleshooting URL
-if [ -z "${troubleshooting_url:-}" ]
-then
-    troubleshooting_url="https://github.com/ssorj/burly/blob/main/troubleshooting.md"
-fi
+troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
 
 # Make the local keyword work with ksh93 and POSIX-style functions
 case "${KSH_VERSION:-}" in
@@ -177,8 +173,6 @@ init_logging() {
     # If verbose, suppress the default display output and log
     # everything to the console. Otherwise, capture logging and
     # command output to the log file.
-    #
-    # XXX Use tee to capture to the log file at the same time?
     if [ -n "${verbose}" ]
     then
         exec 5> /dev/null
@@ -471,9 +465,7 @@ main() {
         print_section "Checking prerequisites"
 
         check_writable_directories "${skupper_bin_dir}"
-
         check_required_programs awk curl gzip tar
-
         check_required_network_resources "https://github.com/"
 
         print_result "OK"
@@ -530,7 +522,6 @@ main() {
         log "Moving the command to its install location"
 
         mkdir -p "${skupper_bin_dir}"
-
         mv skupper "${skupper_bin_dir}"
 
         print_result "OK"
