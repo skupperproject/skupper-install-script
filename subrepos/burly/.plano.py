@@ -1,3 +1,5 @@
+from plano import *
+
 @command
 def test(verbose=False, coverage=False):
     extract("assert")
@@ -33,6 +35,7 @@ def lint():
 def clean():
     remove("build")
     remove("coverage")
+    remove(find("__pycache__"))
 
 @command
 def extract(*function_names):
