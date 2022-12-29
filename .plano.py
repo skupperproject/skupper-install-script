@@ -1,3 +1,5 @@
+from plano import *
+
 @command
 def build():
     burly_in = read("burly.sh").strip()
