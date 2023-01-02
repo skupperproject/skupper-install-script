@@ -53,97 +53,70 @@ assert() {
     fi
 }
 
-program_is_available() {
-    local program="${1}"
-
-    assert test -n "${program}"
-
-    command -v "${program}"
+random_number() {
+    printf "%s%s" "$(date +%s)" "$$"
 }
 
-check_required_programs() {
-    log "Checking for required programs"
-
-    local programs="$*"
-    local program=
-    local unavailable_programs=
-
-    for program in ${programs}
-    do
-        log "Checking program '${program}'"
-
-        if ! command -v "${program}"
-        then
-            unavailable_programs="${unavailable_programs}${program}, "
-        fi
-    done
-
-    if [ -n "${unavailable_programs}" ]
+print() {
+    if [ "$#" = 0 ]
     then
-        fail "Some required programs are not available: ${unavailable_programs%??}" \
-             "${troubleshooting_url}#some-required-programs-are-not-available"
+        printf "\n" >&5
+        printf -- "--\n"
+        return
     fi
+
+    printf "   %s\n" "$1" >&5
+    printf -- "-- %s\n" "$1"
 }
 
-check_required_network_resources() {
-    log "Checking for required network resources"
-
-    local urls="$*"
-    local url=
-    local unavailable_urls=
-
-    assert program_is_available curl
-
-    for url in ${urls}
-    do
-        log "Checking URL '${url}'"
-
-        if ! curl -sf --show-error --head "${url}"
-        then
-            unavailable_urls="${unavailable_urls}${url}, "
-        fi
-    done
-
-    if [ -n "${unavailable_urls}" ]
-    then
-        fail "Some required network resources are not available: ${unavailable_urls%??}" \
-             "${troubleshooting_url}#some-required-network-resources-are-not-available"
-    fi
+print_result() {
+    printf "   %s\n\n" "$(green "$1")" >&5
+    log "Result: $(green "$1")"
 }
 
-check_writable_directories() {
-    log "Checking for permission to write to the install directories"
+print_section() {
+    printf "== %s ==\n\n" "$(bold "$1")" >&5
+    printf "== %s\n" "$1"
+}
 
-    local dirs="$*"
-    local dir=
-    local base_dir=
-    local unwritable_dirs=
+run() {
+    printf -- "-- Running '%s'\n" "$*" >&2
+    "$@"
+}
 
-    for dir in ${dirs}
-    do
-        log "Checking directory '${dir}'"
+log() {
+    printf -- "-- %s\n" "$1"
+}
 
-        base_dir="${dir}"
+fail() {
+    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
+    log "$(red "ERROR:") $1"
 
-        while [ ! -e "${base_dir}" ]
-        do
-            base_dir="$(dirname "${base_dir}")"
-        done
-
-        if [ -w "${base_dir}" ]
-        then
-            printf "Directory '%s' is writable\n" "${base_dir}"
-        else
-            printf "Directory '%s' is not writeable\n" "${base_dir}"
-            unwritable_dirs="${unwritable_dirs}${base_dir}, "
-        fi
-    done
-
-    if [ -n "${unwritable_dirs}" ]
+    if [ -n "${2:-}" ]
     then
-        fail "Some install directories are not writable: ${unwritable_dirs%??}" \
-             "${troubleshooting_url}#some-install-directories-are-not-writable"
+        printf "   See %s\n\n" "$2" >&5
+        log "See $2"
     fi
+
+    suppress_trouble_report=1
+
+    exit 1
+}
+
+green() {
+    printf "[0;32m%s[0m" "$1"
+}
+
+yellow() {
+    printf "[0;33m%s[0m" "$1"
+}
+
+red() {
+    printf "[1;31m%s[0m" "$1"
+}
+
+bold() {
+    printf "[1m%s[0m" "$1"
 }
 
 init_logging() {
@@ -234,66 +207,86 @@ enable_strict_mode() {
     fi
 }
 
-run() {
-    printf -- "-- Running '%s'\n" "$*" >&2
-    "$@"
-}
+check_writable_directories() {
+    log "Checking for permission to write to the install directories"
 
-log() {
-    printf -- "-- %s\n" "$1"
-}
+    local dirs="$*"
+    local dir=
+    local base_dir=
+    local unwritable_dirs=
 
-fail() {
-    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
-    log "$(red "ERROR:") $1"
+    for dir in ${dirs}
+    do
+        log "Checking directory '${dir}'"
 
-    if [ -n "${2:-}" ]
+        base_dir="${dir}"
+
+        while [ ! -e "${base_dir}" ]
+        do
+            base_dir="$(dirname "${base_dir}")"
+        done
+
+        if [ -w "${base_dir}" ]
+        then
+            printf "Directory '%s' is writable\n" "${base_dir}"
+        else
+            printf "Directory '%s' is not writeable\n" "${base_dir}"
+            unwritable_dirs="${unwritable_dirs}${base_dir}, "
+        fi
+    done
+
+    if [ -n "${unwritable_dirs}" ]
     then
-        printf "   See %s\n\n" "$2" >&5
-        log "See $2"
+        fail "Some install directories are not writable: ${unwritable_dirs%??}" \
+             "${troubleshooting_url}#some-install-directories-are-not-writable"
+    fi
+}
+
+save_backup() {
+    local backup_dir="$1"
+    local config_dir="$2"
+    local share_dir="$3"
+    local state_dir="$4"
+
+    shift 4
+
+    local bin_files="$*"
+    local bin_file=
+
+    log "Saving the previous config dir"
+
+    if [ -e "${config_dir}" ]
+    then
+        mkdir -p "${backup_dir}/config"
+        mv "${config_dir}" "${backup_dir}/config"
     fi
 
-    suppress_trouble_report=1
+    log "Saving the previous share dir"
 
-    exit 1
-}
-
-print() {
-    if [ "$#" = 0 ]
+    if [ -e "${share_dir}" ]
     then
-        printf "\n" >&5
-        printf -- "--\n"
-        return
+        mkdir -p "${backup_dir}/share"
+        mv "${share_dir}" "${backup_dir}/share"
     fi
 
-    printf "   %s\n" "$1" >&5
-    printf -- "-- %s\n" "$1"
-}
+    log "Saving the previous state dir"
 
-print_result() {
-    printf "   %s\n\n" "$(green "$1")" >&5
-    log "Result: $(green "$1")"
-}
+    if [ -e "${state_dir}" ]
+    then
+        mkdir -p "${backup_dir}/state"
+        mv "${state_dir}" "${backup_dir}/state"
+    fi
 
-print_section() {
-    printf "== %s ==\n\n" "$(bold "$1")" >&5
-    printf "== %s\n" "$1"
-}
+    for bin_file in ${bin_files}
+    do
+        if [ -e "${bin_file}" ]
+        then
+            mkdir -p "${backup_dir}/bin"
+            mv "${bin_file}" "${backup_dir}/bin"
+        fi
+    done
 
-green() {
-    printf "[0;32m%s[0m" "$1"
-}
-
-yellow() {
-    printf "[0;33m%s[0m" "$1"
-}
-
-red() {
-    printf "[1;31m%s[0m" "$1"
-}
-
-bold() {
-    printf "[1m%s[0m" "$1"
+    assert test -d "${backup_dir}"
 }
 
 ask_to_proceed() {
@@ -309,22 +302,6 @@ ask_to_proceed() {
             *) ;;
         esac
     done
-}
-
-extract_archive() {
-    local archive_file="$1"
-    local output_dir="$2"
-
-    assert test -f "${archive_file}"
-    assert test -d "${output_dir}"
-    assert program_is_available gzip
-    assert program_is_available tar
-
-    gzip -dc "${archive_file}" | (cd "${output_dir}" && tar xf -)
-}
-
-random_number() {
-    printf "%s%s" "$(date +%s)" "$$"
 }
 
 usage() {

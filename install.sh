@@ -55,6 +55,160 @@ assert() {
     fi
 }
 
+random_number() {
+    printf "%s%s" "$(date +%s)" "$$"
+}
+
+print() {
+    if [ "$#" = 0 ]
+    then
+        printf "\n" >&5
+        printf -- "--\n"
+        return
+    fi
+
+    printf "   %s\n" "$1" >&5
+    printf -- "-- %s\n" "$1"
+}
+
+print_result() {
+    printf "   %s\n\n" "$(green "$1")" >&5
+    log "Result: $(green "$1")"
+}
+
+print_section() {
+    printf "== %s ==\n\n" "$(bold "$1")" >&5
+    printf "== %s\n" "$1"
+}
+
+run() {
+    printf -- "-- Running '%s'\n" "$*" >&2
+    "$@"
+}
+
+log() {
+    printf -- "-- %s\n" "$1"
+}
+
+fail() {
+    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
+    log "$(red "ERROR:") $1"
+
+    if [ -n "${2:-}" ]
+    then
+        printf "   See %s\n\n" "$2" >&5
+        log "See $2"
+    fi
+
+    suppress_trouble_report=1
+
+    exit 1
+}
+
+green() {
+    printf "[0;32m%s[0m" "$1"
+}
+
+yellow() {
+    printf "[0;33m%s[0m" "$1"
+}
+
+red() {
+    printf "[1;31m%s[0m" "$1"
+}
+
+bold() {
+    printf "[1m%s[0m" "$1"
+}
+
+init_logging() {
+    local log_file="$1"
+    local verbose="$2"
+
+    # shellcheck disable=SC2064 # We want to expand these now, not later
+    trap "handle_exit '${log_file}' '${verbose}'" EXIT
+
+    if [ -e "${log_file}" ]
+    then
+        mv "${log_file}" "${log_file}.$(date +%Y-%m-%d).$(random_number)"
+    fi
+
+    # Use file descriptor 5 for the default display output
+    exec 5>&1
+
+    # Use file descriptor 6 for logging and command output
+    exec 6>&2
+
+    # Save stdout and stderr before redirection
+    exec 7>&1
+    exec 8>&2
+
+    # If verbose, suppress the default display output and log
+    # everything to the console. Otherwise, capture logging and
+    # command output to the log file.
+    if [ -n "${verbose}" ]
+    then
+        exec 5> /dev/null
+    else
+        exec 6> "${log_file}"
+    fi
+}
+
+handle_exit() {
+    # This must go first
+    local exit_code=$?
+
+    local log_file="$1"
+    local verbose="$2"
+
+    # Restore stdout and stderr
+    exec 1>&7
+    exec 2>&8
+
+    # shellcheck disable=SC2181 # This is intentionally indirect
+    if [ "${exit_code}" != 0 ] && [ -z "${suppress_trouble_report:-}" ]
+    then
+        if [ -n "${verbose}" ]
+        then
+            printf "%s Something went wrong.\n\n" "$(red "TROUBLE!")"
+        else
+            printf "   %s Something went wrong.\n\n" "$(red "TROUBLE!")"
+            printf "== Log ==\n\n"
+
+            sed -e "s/^/  /" < "${log_file}" || :
+
+            printf "\n"
+        fi
+    fi
+}
+
+enable_debug_mode() {
+    # Print the input commands and their expanded form to the console
+    set -vx
+
+    if [ -n "${BASH:-}" ]
+    then
+        # Bash offers more details
+        export PS4='[0;33m${BASH_SOURCE}:${LINENO}:[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    fi
+}
+
+enable_strict_mode() {
+    # No clobber, exit on error, and fail on unbound variables
+    set -Ceu
+
+    if [ -n "${BASH:-}" ]
+    then
+        # Inherit traps, fail fast in pipes, enable POSIX mode, and
+        # disable brace expansion
+        #
+        # shellcheck disable=SC3040,SC3041 # We know this is Bash in this case
+        set -E -o pipefail -o posix +o braceexpand
+
+        assert test -n "${POSIXLY_CORRECT}"
+    fi
+}
+
 program_is_available() {
     local program="${1}"
 
@@ -148,154 +302,51 @@ check_writable_directories() {
     fi
 }
 
-init_logging() {
-    local log_file="$1"
-    local verbose="$2"
+save_backup() {
+    local backup_dir="$1"
+    local config_dir="$2"
+    local share_dir="$3"
+    local state_dir="$4"
 
-    # shellcheck disable=SC2064 # We want to expand these now, not later
-    trap "handle_exit '${log_file}' '${verbose}'" EXIT
+    shift 4
 
-    if [ -e "${log_file}" ]
+    local bin_files="$*"
+    local bin_file=
+
+    log "Saving the previous config dir"
+
+    if [ -e "${config_dir}" ]
     then
-        mv "${log_file}" "${log_file}.$(date +%Y-%m-%d).$(random_number)"
+        mkdir -p "${backup_dir}/config"
+        mv "${config_dir}" "${backup_dir}/config"
     fi
 
-    # Use file descriptor 5 for the default display output
-    exec 5>&1
+    log "Saving the previous share dir"
 
-    # Use file descriptor 6 for logging and command output
-    exec 6>&2
-
-    # Save stdout and stderr before redirection
-    exec 7>&1
-    exec 8>&2
-
-    # If verbose, suppress the default display output and log
-    # everything to the console. Otherwise, capture logging and
-    # command output to the log file.
-    if [ -n "${verbose}" ]
+    if [ -e "${share_dir}" ]
     then
-        exec 5> /dev/null
-    else
-        exec 6> "${log_file}"
+        mkdir -p "${backup_dir}/share"
+        mv "${share_dir}" "${backup_dir}/share"
     fi
-}
 
-handle_exit() {
-    # This must go first
-    local exit_code=$?
+    log "Saving the previous state dir"
 
-    local log_file="$1"
-    local verbose="$2"
-
-    # Restore stdout and stderr
-    exec 1>&7
-    exec 2>&8
-
-    # shellcheck disable=SC2181 # This is intentionally indirect
-    if [ "${exit_code}" != 0 ] && [ -z "${suppress_trouble_report:-}" ]
+    if [ -e "${state_dir}" ]
     then
-        if [ -n "${verbose}" ]
+        mkdir -p "${backup_dir}/state"
+        mv "${state_dir}" "${backup_dir}/state"
+    fi
+
+    for bin_file in ${bin_files}
+    do
+        if [ -e "${bin_file}" ]
         then
-            printf "%s Something went wrong.\n\n" "$(red "TROUBLE!")"
-        else
-            printf "   %s Something went wrong.\n\n" "$(red "TROUBLE!")"
-            printf "== Log ==\n\n"
-
-            sed -e "s/^/  /" < "${log_file}" || :
-
-            printf "\n"
+            mkdir -p "${backup_dir}/bin"
+            mv "${bin_file}" "${backup_dir}/bin"
         fi
-    fi
-}
+    done
 
-enable_debug_mode() {
-    # Print the input commands and their expanded form to the console
-    set -vx
-
-    if [ -n "${BASH:-}" ]
-    then
-        # Bash offers more details
-        export PS4='[0;33m${BASH_SOURCE}:${LINENO}:[0m ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-    fi
-}
-
-enable_strict_mode() {
-    # No clobber, exit on error, and fail on unbound variables
-    set -Ceu
-
-    if [ -n "${BASH:-}" ]
-    then
-        # Inherit traps, fail fast in pipes, enable POSIX mode, and
-        # disable brace expansion
-        #
-        # shellcheck disable=SC3040,SC3041 # We know this is Bash in this case
-        set -E -o pipefail -o posix +o braceexpand
-
-        assert test -n "${POSIXLY_CORRECT}"
-    fi
-}
-
-run() {
-    printf -- "-- Running '%s'\n" "$*" >&2
-    "$@"
-}
-
-log() {
-    printf -- "-- %s\n" "$1"
-}
-
-fail() {
-    printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
-    log "$(red "ERROR:") $1"
-
-    if [ -n "${2:-}" ]
-    then
-        printf "   See %s\n\n" "$2" >&5
-        log "See $2"
-    fi
-
-    suppress_trouble_report=1
-
-    exit 1
-}
-
-print() {
-    if [ "$#" = 0 ]
-    then
-        printf "\n" >&5
-        printf -- "--\n"
-        return
-    fi
-
-    printf "   %s\n" "$1" >&5
-    printf -- "-- %s\n" "$1"
-}
-
-print_result() {
-    printf "   %s\n\n" "$(green "$1")" >&5
-    log "Result: $(green "$1")"
-}
-
-print_section() {
-    printf "== %s ==\n\n" "$(bold "$1")" >&5
-    printf "== %s\n" "$1"
-}
-
-green() {
-    printf "[0;32m%s[0m" "$1"
-}
-
-yellow() {
-    printf "[0;33m%s[0m" "$1"
-}
-
-red() {
-    printf "[1;31m%s[0m" "$1"
-}
-
-bold() {
-    printf "[1m%s[0m" "$1"
+    assert test -d "${backup_dir}"
 }
 
 ask_to_proceed() {
@@ -323,10 +374,6 @@ extract_archive() {
     assert program_is_available tar
 
     gzip -dc "${archive_file}" | (cd "${output_dir}" && tar xf -)
-}
-
-random_number() {
-    printf "%s%s" "$(date +%s)" "$$"
 }
 
 usage() {
