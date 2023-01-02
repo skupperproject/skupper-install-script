@@ -32,11 +32,11 @@ def build():
     install_sh_in = read("install.sh.in")
     install_sh = replace(install_sh_in, "@burly@", "\n".join(burly_out))
 
-    # uninstall_sh_in = read("uninstall.sh.in")
-    # uninstall_sh = replace(uninstall_sh_in, "@burly@", burly)
+    uninstall_sh_in = read("uninstall.sh.in")
+    uninstall_sh = replace(uninstall_sh_in, "@burly@", "\n".join(burly_out))
 
     write("install.sh", install_sh)
-    # write("uninstall.sh", uninstall_sh)
+    write("uninstall.sh", uninstall_sh)
 
 def extract_boilerplate(code):
     import re

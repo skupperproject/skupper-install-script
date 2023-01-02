@@ -67,44 +67,22 @@ main() {
     while getopts :his:v option
     do
         case "${option}" in
-            h)
-                usage
-                ;;
-            i)
-                interactive=1
-                ;;
-            s)
-                scheme="${OPTARG}"
-                ;;
-            v)
-                verbose=1
-                ;;
-            *)
-                usage "Unknown option: ${OPTARG}"
-                ;;
+            h) usage              ;;
+            i) interactive=1      ;;
+            s) scheme="${OPTARG}" ;;
+            v) verbose=1          ;;
+            *) usage "Unknown option: ${OPTARG}" ;;
         esac
     done
 
     case "${scheme}" in
-        home)
-            artemis_bin_dir="${HOME}/.local/bin"
-            artemis_config_dir="${HOME}/.config/artemis"
-            artemis_home_dir="${HOME}/.local/share/artemis"
-            artemis_instance_dir="${HOME}/.local/state/artemis"
-            ;;
-        opt)
-            artemis_bin_dir="/opt/artemis/bin"
-            artemis_config_dir="/etc/opt/artemis"
-            artemis_home_dir="/opt/artemis"
-            artemis_instance_dir="/var/opt/artemis"
-            ;;
-        *)
-            usage "Unknown installation scheme: ${scheme}"
-            ;;
+        home) local skupper_bin_dir="${HOME}/.local/bin"     ;;
+        opt)  local skupper_bin_dir="/opt/skupper/bin"       ;;
+        *)    usage "Unknown installation scheme: ${scheme}" ;;
     esac
 
-    local work_dir="${HOME}/artemis-install-script"
-    local log_file="${work_dir}/uninstall.log"
+    local work_dir="${HOME}/skupper-install-script"
+    local log_file="${work_dir}/install.log"
     local backup_dir="${work_dir}/backup"
 
     mkdir -p "${work_dir}"
@@ -113,54 +91,33 @@ main() {
     init_logging "${log_file}" "${verbose}"
 
     {
-        if [ -e "${backup_dir}" ]
-        then
-            mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
-        fi
+        # if [ -e "${backup_dir}" ]
+        # then
+        #     mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
+        # fi
 
         print_section "Checking prerequisites"
 
-        if [ ! -e "${artemis_config_dir}" ] && [ ! -e "${artemis_home_dir}" ] && [ ! -e "${artemis_instance_dir}" ]
+        if [ ! -e "${skupper_bin_dir}/skupper" ]
         then
             fail "There is no existing installation to remove"
         fi
 
-        check_writable_directories "${artemis_bin_dir}" \
-                                   "$(dirname "${artemis_config_dir}")" \
-                                   "$(dirname "${artemis_home_dir}")" \
-                                   "$(dirname "${artemis_instance_dir}")"
+        check_writable_directories "${skupper_bin_dir}"
 
         print_result "OK"
 
         print_section "Saving the existing installation to a backup"
 
-        save_backup "${backup_dir}" \
-                    "${artemis_config_dir}" "${artemis_home_dir}" "${artemis_instance_dir}" \
-                    "${artemis_bin_dir}/artemis" "${artemis_bin_dir}/artemis-service"
+        # save_backup "${backup_dir}" \
+        #             "${artemis_config_dir}" "${artemis_home_dir}" "${artemis_instance_dir}" \
+        #             "${artemis_bin_dir}/artemis" "${artemis_bin_dir}/artemis-service"
 
         print_result "OK"
 
         print_section "Removing the existing installation"
 
-        if [ -e "${artemis_bin_dir}/artemis" ]; then
-            rm "${artemis_bin_dir}/artemis"
-        fi
-
-        if [ -e "${artemis_bin_dir}/artemis-service" ]; then
-            rm "${artemis_bin_dir}/artemis-service"
-        fi
-
-        if [ -e "${artemis_config_dir}" ]; then
-            rm -rf "${artemis_config_dir}"
-        fi
-
-        if [ -e "${artemis_home_dir}" ]; then
-            rm -rf "${artemis_home_dir}"
-        fi
-
-        if [ -e "${artemis_instance_dir}" ]; then
-            rm -rf "${artemis_instance_dir}"
-        fi
+        rm "${skupper_bin_dir}/skupper"
 
         print_result "OK"
 
@@ -168,13 +125,13 @@ main() {
 
         print_result "SUCCESS"
 
-        print "ActiveMQ Artemis has been uninstalled."
+        print "The Skupper command has been uninstalled."
         print
         print "    Backup:  ${backup_dir}"
         print
-        print "To install Artemis again, use:"
+        print "To install Skupper again, use:"
         print
-        print "    curl -f https://raw.githubusercontent.com/ssorj/persephone/main/artemis/install.sh | sh"
+        print "    curl https://raw.githubusercontent.com/ssorj/skupper-install-script/main/install.sh | sh"
         print
     } >&6 2>&6
 }

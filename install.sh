@@ -565,7 +565,7 @@ main() {
         print
         print "To uninstall Skupper, use:"
         print
-        print "    curl https://skupper.io/uninstall.sh | sh"
+        print "    curl https://raw.githubusercontent.com/ssorj/skupper-install-script/main/uninstall.sh | sh"
         print
     } >&6 2>&6
 }
