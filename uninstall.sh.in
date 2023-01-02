@@ -91,11 +91,6 @@ main() {
     init_logging "${log_file}" "${verbose}"
 
     {
-        # if [ -e "${backup_dir}" ]
-        # then
-        #     mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
-        # fi
-
         print_section "Checking prerequisites"
 
         if [ ! -e "${skupper_bin_dir}/skupper" ]
@@ -109,15 +104,21 @@ main() {
 
         print_section "Saving the existing installation to a backup"
 
-        # save_backup "${backup_dir}" \
-        #             "${artemis_config_dir}" "${artemis_home_dir}" "${artemis_instance_dir}" \
-        #             "${artemis_bin_dir}/artemis" "${artemis_bin_dir}/artemis-service"
+        if [ -e "${backup_dir}" ]
+        then
+            mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
+        fi
+
+        save_backup "${backup_dir}" - - - "${skupper_bin_dir}/skupper"
 
         print_result "OK"
 
         print_section "Removing the existing installation"
 
-        rm "${skupper_bin_dir}/skupper"
+        if [ -e "${skupper_bin_dir}/skupper" ]
+        then
+            rm "${skupper_bin_dir}/skupper"
+        fi
 
         print_result "OK"
 

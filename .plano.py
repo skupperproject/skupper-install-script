@@ -93,23 +93,6 @@ def extract_functions(code):
 def clean():
     remove(find(".", "__pycache__"))
 
-def extract_boilerplate(code):
-    boilerplate = re.search(r"# BEGIN BOILERPLATE\n(.*?)\n# END BOILERPLATE", code, re.DOTALL)
-
-    if boilerplate:
-        return boilerplate.group(1).strip()
-
-def extract_functions(code):
-    import re
-
-    functions = dict()
-    matches = re.finditer(r"\n(\w+)\s*\(\)\s+{\n.*?\n}", code, re.DOTALL)
-
-    for match in matches:
-        functions[match.group(1)] = match.group(0)
-
-    return functions
-
 @command
 def test(shell="sh", verbose=False, debug=False):
     check_program(shell)
@@ -143,7 +126,7 @@ def big_test(verbose=False, debug=False):
         run(f"sh install.sh") # Creates a backup
         run(f"sh install.sh") # Backs up the backup
 
-        # run(f"sh uninstall.sh")
+        run(f"sh uninstall.sh")
 
 @command
 def lint():
