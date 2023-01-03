@@ -486,7 +486,7 @@ main() {
 
         check_writable_directories "${skupper_bin_dir}"
         check_required_programs awk curl gzip tar
-        check_required_network_resources "https://github.com/" "https://api.github.com/"
+        check_required_network_resources "https://github.com/" "https://api.github.com/rate_limit"
 
         print_result "OK"
 
