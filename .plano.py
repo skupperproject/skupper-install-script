@@ -44,14 +44,12 @@ def build():
         "check_required_programs",
         "check_required_network_resources",
         "check_writable_directories",
-        "save_backup",
         "ask_to_proceed",
         "extract_archive",
     ]
 
     uninstall_function_names = core_function_names + [
         "check_writable_directories",
-        "save_backup",
         "ask_to_proceed",
     ]
 

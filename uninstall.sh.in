@@ -18,6 +18,8 @@
 # under the License.
 #
 
+troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
+
 @burly@
 
 usage() {
@@ -91,6 +93,26 @@ main() {
     init_logging "${log_file}" "${verbose}"
 
     {
+        if [ -n "${interactive}" ]
+        then
+            print_section "Preparing to uninstall"
+
+            print "This script will uninstall the Skupper command currently at:"
+            print
+            print "    ${skupper_bin_dir}/skupper"
+            print
+            print "It will save a backup of the existing installation to:"
+            print
+            print "    ${backup_dir}"
+            print
+            print "Run \"uninstall.sh -h\" to see the uninstall options."
+            print
+
+            ask_to_proceed
+
+            print
+        fi
+
         print_section "Checking prerequisites"
 
         if [ ! -e "${skupper_bin_dir}/skupper" ]
@@ -102,16 +124,20 @@ main() {
 
         print_result "OK"
 
-        print_section "Saving the existing installation to a backup"
-
-        if [ -e "${backup_dir}" ]
+        if [ -e "${skupper_bin_dir}/skupper" ]
         then
-            mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
+            print_section "Saving the existing installation to a backup"
+
+            if [ -e "${backup_dir}" ]
+            then
+                mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
+            fi
+
+            run mkdir -p "${backup_dir}"
+            run mv "${skupper_bin_dir}/skupper" "${backup_dir}"
+
+            print_result "OK"
         fi
-
-        save_backup "${backup_dir}" - - - "${skupper_bin_dir}/skupper"
-
-        print_result "OK"
 
         print_section "Removing the existing installation"
 

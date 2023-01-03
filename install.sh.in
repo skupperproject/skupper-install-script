@@ -155,6 +155,26 @@ main() {
     init_logging "${log_file}" "${verbose}"
 
     {
+        if [ -n "${interactive}" ]
+        then
+            print_section "Preparing to install"
+
+            print "This script will install the Skupper command to:"
+            print
+            print "    ${skupper_bin_dir}/skupper"
+            print
+            print "It will save a backup of any existing installation to:"
+            print
+            print "    ${backup_dir}"
+            print
+            print "Run \"install.sh -h\" to see the installation options."
+            print
+
+            ask_to_proceed
+
+            print
+        fi
+
         print_section "Checking prerequisites"
 
         check_writable_directories "${skupper_bin_dir}"
@@ -169,34 +189,14 @@ main() {
 
         print_result "OK"
 
-        if [ -e "${backup_dir}" ]
-        then
-            mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
-        fi
-
-        if [ -n "${interactive}" ]
-        then
-            print_section "Preparing to install"
-
-            print "This script will install the Skupper command to:"
-            print
-            print "    ${skupper_bin_dir}"
-            print
-            print "It will save a backup of any existing installation to:"
-            print
-            print "    ${backup_dir}"
-            print
-            print "Run \"install.sh -h\" to see the installation options."
-            print
-
-            ask_to_proceed
-
-            print
-        fi
-
         if [ -e "${skupper_bin_dir}/skupper" ]
         then
             print_section "Saving the existing installation to a backup"
+
+            if [ -e "${backup_dir}" ]
+            then
+                mv "${backup_dir}" "${backup_dir}.$(date +%Y-%m-%d).$(random_number)"
+            fi
 
             run mkdir -p "${backup_dir}"
             run mv "${skupper_bin_dir}/skupper" "${backup_dir}"
