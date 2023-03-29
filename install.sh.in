@@ -67,7 +67,7 @@ fetch_latest_skupper_release() {
     log "Determining your OS an architecture"
 
     case $(uname -s) in
-        CYGWIN*) local operating_system=windows ;;
+        # CYGWIN*) local operating_system=windows ;;
         Darwin)  local operating_system=mac     ;;
         Linux)   local operating_system=linux   ;;
         *)       fail "Unknown operating system: $(uname -s)" ;;
