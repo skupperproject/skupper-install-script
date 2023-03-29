@@ -18,6 +18,7 @@
 # under the License.
 #
 
+site_url="https://raw.githubusercontent.com/ssorj/skupper-install-script/main"
 troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
 
 # Make the local keyword work with ksh93 and POSIX-style functions
@@ -395,7 +396,7 @@ main() {
         print
         print "To install Skupper again, use:"
         print
-        print "    curl https://raw.githubusercontent.com/ssorj/skupper-install-script/main/install.sh | sh"
+        print "    curl ${site_url}/install.sh | sh"
         print
     } >&6 2>&6
 }

@@ -2,32 +2,22 @@
 
 ## Some install directories are not writable
 
-- Change directory permissions.
-
-- Install as a different user who does have write permission.
+Change directory permissions.  Make sure your current user has
+permission to write to the `~/bin` directory.
 
 ## Some required programs are not available
 
-- Use your OS's package manager to look up and install things.
+Use your OS's package manager to install the required packages.
 
-## Some required ports are in use by something else
-
-- Check if you have Artemis already running.
-
-- Use `lsof` or `netstat` to identify the processes using the ports
-  and terminate them.
-
-    ~~~
-    lsof -PiTCP -sTCP:LISTEN | grep ":<port>"
-    netstat -an | grep LISTEN | grep ":<port>"
-    ~~~
+~~~
+$ dnf whatprovides <program>
+$ sudo dnf install <package>
+~~~
 
 ## Some required network resources are not available
 
-- Check your network.
+Check your network.  Use traceroute to find out where connectivity
+falters.
 
-- Use traceroute to find out where connectivity falters.
-
-## The checksum does not match the downloaded release archive
-
-- Try blowing away the cached download.
+<!-- ## The checksum does not match the downloaded release archive -->
+<!-- - Try blowing away the cached download. -->

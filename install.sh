@@ -18,6 +18,7 @@
 # under the License.
 #
 
+site_url="https://raw.githubusercontent.com/ssorj/skupper-install-script/main"
 troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
 
 # Make the local keyword work with ksh93 and POSIX-style functions
@@ -395,8 +396,8 @@ fetch_latest_skupper_release() {
 
     log "Looking up the latest release version"
 
-    run curl -sf "https://api.github.com/repos/skupperproject/skupper/releases/latest" \
-        | awk 'match($0, /"tag_name": "[0-9]+\.[0-9]+\.[0-9]+"/) { print substr($0, RSTART+13, RLENGTH-14) }' \
+    run curl -sf "${site_url}/install.json" \
+        | awk 'match($0, /"version": "[0-9]+\.[0-9]+\.[0-9]+"/) { print substr($0, RSTART+12, RLENGTH-13) }' \
         >| "${release_version_file}"
 
     release_version="$(cat "${release_version_file}")"
@@ -486,7 +487,7 @@ main() {
 
         check_writable_directories "${skupper_bin_dir}"
         check_required_programs awk curl gzip tar
-        check_required_network_resources "https://github.com/" "https://api.github.com/rate_limit"
+        check_required_network_resources "https://github.com/" "https://skupper.io/"
 
         print_result "OK"
 
@@ -565,7 +566,7 @@ main() {
         print
         print "To uninstall Skupper, use:"
         print
-        print "    curl https://raw.githubusercontent.com/ssorj/skupper-install-script/main/uninstall.sh | sh"
+        print "    curl ${site_url}/uninstall.sh | sh"
         print
     } >&6 2>&6
 }
