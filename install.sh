@@ -18,8 +18,8 @@
 # under the License.
 #
 
-site_url="https://raw.githubusercontent.com/ssorj/skupper-install-script/main"
-troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
+site_url="https://raw.githubusercontent.com/skupperproject/skupper-install-script/main"
+troubleshooting_url="https://github.com/skupperproject/skupper-install-script/blob/main/troubleshooting.md"
 
 # Make the local keyword work with ksh93 and POSIX-style functions
 case "${KSH_VERSION:-}" in
@@ -374,7 +374,7 @@ fetch_latest_skupper_release() {
     log "Determining your OS an architecture"
 
     case $(uname -s) in
-        CYGWIN*) local operating_system=windows ;;
+        # CYGWIN*) local operating_system=windows ;;
         Darwin)  local operating_system=mac     ;;
         Linux)   local operating_system=linux   ;;
         *)       fail "Unknown operating system: $(uname -s)" ;;

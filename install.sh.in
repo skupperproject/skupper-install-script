@@ -18,8 +18,8 @@
 # under the License.
 #
 
-site_url="https://raw.githubusercontent.com/ssorj/skupper-install-script/main"
-troubleshooting_url="https://github.com/ssorj/skupper-install-script/blob/main/troubleshooting.md"
+site_url="https://raw.githubusercontent.com/skupperproject/skupper-install-script/main"
+troubleshooting_url="https://github.com/skupperproject/skupper-install-script/blob/main/troubleshooting.md"
 
 @burly@
 
