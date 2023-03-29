@@ -5,18 +5,16 @@ on:
   schedule:
     - cron: "0 0 * * 0"
 jobs:
-  # cygwin:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - run: git config --global core.autocrlf input
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.x"
-  #     - uses: cygwin/cygwin-install-action@master
-  #       with:
-  #         packages: nc
-  #     - run: python plano test --verbose
+  cygwin:
+    runs-on: windows-latest
+    steps:
+      - run: git config --global core.autocrlf input
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - uses: cygwin/cygwin-install-action@master
+      - run: python plano test --verbose
   fedora:
     runs-on: ubuntu-latest
     container: fedora:latest
