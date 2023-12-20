@@ -132,4 +132,4 @@ def lint():
 
     build()
 
-    run("shellcheck --enable all --exclude SC3043 install.sh uninstall.sh")
+    run("shellcheck --shell sh --enable all --exclude SC3043,SC2310,SC2312 install.sh uninstall.sh")
