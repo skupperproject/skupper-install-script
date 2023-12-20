@@ -58,6 +58,10 @@ def clean():
 
 @command
 def extract(*function_names):
+    """
+    Produce code containing only the named functions and some setup logic
+    """
+
     code = read("burly.sh")
 
     boilerplate = extract_boilerplate(code)

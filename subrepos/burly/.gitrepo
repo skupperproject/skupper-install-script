@@ -6,7 +6,7 @@
 [subrepo]
 	remote = git@github.com:ssorj/burly.git
 	branch = main
-	commit = e469f4cba74e6ef6aec5d85649684f725d32502a
-	parent = 9f83f41dbd3065478acd81ec496fa61519d956de
+	commit = fd42415709f7aaac2fc3d30c7a5bec8b83538f4e
+	parent = 635a072651c76baf8bed2941503e65010bc48695
 	method = merge
-	cmdver = 0.4.5
+	cmdver = 0.4.6
