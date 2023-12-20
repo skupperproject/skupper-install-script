@@ -19,7 +19,7 @@
 #
 
 site_url="https://raw.githubusercontent.com/skupperproject/skupper-install-script/main"
-troubleshooting_url="https://github.com/skupperproject/skupper-install-script/blob/main/troubleshooting.md"
+troubleshooting_url="https://skupper.io/install/troubleshooting.html"
 
 @burly@
 
