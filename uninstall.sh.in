@@ -34,7 +34,7 @@ usage() {
     cat <<EOF
 Usage: ${0} [-hvy] [-s <scheme>]
 
-A script that uninstalls ActiveMQ Artemis
+A script that uninstalls the Skupper command-line tool
 
 Options:
   -h            Print this help text and exit
