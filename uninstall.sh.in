@@ -18,8 +18,7 @@
 # under the License.
 #
 
-site_url="https://raw.githubusercontent.com/skupperproject/skupper-install-script/main"
-troubleshooting_url="https://github.com/skupperproject/skupper-install-script/blob/main/troubleshooting.md"
+troubleshooting_url="https://skupper.io/install/troubleshooting.html"
 
 @burly@
 
@@ -159,7 +158,7 @@ main() {
         print
         print "To install Skupper again, use:"
         print
-        print "    curl ${site_url}/install.sh | sh"
+        print "    curl https://skupper.io/install.sh | sh"
         print
     } >&6 2>&6
 }
