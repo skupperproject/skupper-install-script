@@ -94,10 +94,10 @@ fail() {
     printf "   %s %s\n\n" "$(red "ERROR:")" "$1" >&5
     log "$(red "ERROR:") $1"
 
-    if [ -n "${2:-}" ]
+    if [ -n "${2:-}" ] && [ -n "${troubleshooting_url:-}" ]
     then
-        printf "   See %s\n\n" "$2" >&5
-        log "See $2"
+        printf "   See ${troubleshooting_url}%s\n\n" "$2" >&5
+        log "See ${troubleshooting_url}$2"
     fi
 
     suppress_trouble_report=1
@@ -240,7 +240,7 @@ check_writable_directories() {
     if [ -n "${unwritable_dirs}" ]
     then
         fail "Some install directories are not writable: ${unwritable_dirs%??}" \
-             "${troubleshooting_url}#some-install-directories-are-not-writable"
+             "#some-install-directories-are-not-writable"
     fi
 }
 

@@ -109,6 +109,9 @@ def test(shell="sh", verbose=False, debug=False):
 
 @command
 def big_test(verbose=False, debug=False):
+    """
+    Run the tests against a range of shell interpreters
+    """
     test(verbose=True, debug=debug)
     test(verbose=False, debug=debug)
 
@@ -128,8 +131,20 @@ def big_test(verbose=False, debug=False):
 
 @command
 def lint():
+    """
+    Use shellcheck to scan for problems
+    """
     check_program("shellcheck")
 
     build()
 
     run("shellcheck --shell sh --enable all --exclude SC3043,SC2310,SC2312 install.sh uninstall.sh")
+
+@command
+def update_burly():
+    """
+    Update the embedded Burly repo
+    """
+    make_dir("external")
+    remove("external/burly-main")
+    run("curl -sfL https://github.com/ssorj/burly/archive/main.tar.gz | tar -C external -xz", shell=True)

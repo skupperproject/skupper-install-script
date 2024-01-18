@@ -1,1 +1,1 @@
-subrepos/burly/burly.sh
+external/burly-main/burly.sh

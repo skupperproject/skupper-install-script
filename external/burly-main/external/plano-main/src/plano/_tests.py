@@ -66,34 +66,38 @@ def archive_operations():
 def command_operations():
     class SomeCommand(BaseCommand):
         def __init__(self):
+            super().__init__()
+
             self.parser = BaseArgumentParser()
             self.parser.add_argument("--interrupt", action="store_true")
             self.parser.add_argument("--explode", action="store_true")
+            self.parser.add_argument("--verbose", action="store_true")
+            self.parser.add_argument("--quiet", action="store_true")
 
         def parse_args(self, args):
             return self.parser.parse_args(args)
 
         def init(self, args):
-            self.verbose = args.verbose
             self.interrupt = args.interrupt
             self.explode = args.explode
+            self.verbose = args.verbose
+            self.quiet = args.quiet
 
         def run(self):
-            if self.verbose:
-                print("Hello")
-
             if self.interrupt:
                 raise KeyboardInterrupt()
 
             if self.explode:
                 raise PlanoError("Exploded")
 
+            if self.verbose:
+                print("Hello")
+
     SomeCommand().main([])
     SomeCommand().main(["--interrupt"])
-    SomeCommand().main(["--debug"])
 
     with expect_system_exit():
-        SomeCommand().main(["--verbose", "--debug", "--explode"])
+        SomeCommand().main(["--verbose", "--explode"])
 
 @test
 def console_operations():
@@ -357,6 +361,9 @@ def http_operations():
             result = http_get(url, insecure=True)
             assert result == "[1]", result
 
+            result = http_get(url, user="fritz", password="secret")
+            assert result == "[1]", result
+
             result = http_get(url, output_file="a")
             output = read("a")
             assert result is None, result
@@ -507,7 +514,7 @@ def link_operations():
 @test
 def logging_operations():
     error("Error!")
-    warn("Warning!")
+    warning("Warning!")
     notice("Take a look!")
     notice(123)
     debug("By the way")
@@ -519,7 +526,7 @@ def logging_operations():
     with expect_error():
         fail("Error!")
 
-    for level in ("debug", "notice", "warn", "error"):
+    for level in ("debug", "notice", "warning", "error"):
         with expect_output(contains="Hello") as out:
             with logging_disabled():
                 with logging_enabled(level=level, output=out):
@@ -529,6 +536,15 @@ def logging_operations():
         with logging_enabled(output=out):
             with logging_disabled():
                 error("Yikes")
+
+    with expect_output(contains="flipper") as out:
+        with logging_enabled(output=out):
+            with logging_context("flipper"):
+                notice("Whhat")
+
+    with logging_context("bip"):
+        with logging_context("boop"):
+            error("It's alarming!")
 
 @test
 def path_operations():
@@ -872,6 +888,9 @@ def string_operations():
     decoded_result = url_decode(encoded_result)
     assert decoded_result == "abc=123&yeah!", decoded_result
 
+    result = parse_url("http://example.net/index.html")
+    assert result.hostname == "example.net"
+
 @test
 def temp_operations():
     system_temp_dir = get_system_temp_dir()
@@ -1167,7 +1186,6 @@ def plano_command():
         run_command()
         run_command("--help")
         run_command("--quiet")
-        run_command("--init-only")
 
         with expect_system_exit():
             run_command("no-such-command")

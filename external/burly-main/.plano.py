@@ -54,7 +54,7 @@ def lint():
 def clean():
     remove("build")
     remove("coverage")
-    remove(find("__pycache__"))
+    remove(find(".", "__pycache__"))
 
 @command
 def extract(*function_names):
@@ -90,3 +90,12 @@ def extract_functions(code):
         functions[match.group(1)] = match.group(0)
 
     return functions
+
+@command
+def update_plano():
+    """
+    Update the embedded Plano repo
+    """
+    make_dir("external")
+    remove("external/plano-main")
+    run("curl -sfL https://github.com/ssorj/plano/archive/main.tar.gz | tar -C external -xz", shell=True)

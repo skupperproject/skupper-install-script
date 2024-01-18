@@ -215,10 +215,10 @@ fail() {
     printf "   %s %s\\n\\n" "$(red "ERROR:")" "$1" >&5
     log "$(red "ERROR:") $1"
 
-    if [ -n "${2:-}" ]
+    if [ -n "${2:-}" ] && [ -n "${troubleshooting_url:-}" ]
     then
-        printf "   See %s\\n\\n" "$2" >&5
-        log "See $2"
+        printf "   See ${troubleshooting_url}%s\\n\\n" "$2" >&5
+        log "See ${troubleshooting_url}$2"
     fi
 
     suppress_trouble_report=1
@@ -354,7 +354,7 @@ check_writable_directories() {
     if [ -n "${unwritable_dirs}" ]
     then
         fail "Some install directories are not writable: ${unwritable_dirs%??}" \
-             "${troubleshooting_url}#some-install-directories-are-not-writable"
+             "#some-install-directories-are-not-writable"
     fi
 }
 
@@ -378,7 +378,7 @@ check_required_programs() {
     if [ -n "${unavailable_programs}" ]
     then
         fail "Some required programs are not available: ${unavailable_programs%??}" \
-             "${troubleshooting_url}#some-required-programs-are-not-available"
+             "#some-required-programs-are-not-available"
     fi
 }
 
@@ -388,7 +388,7 @@ check_required_program_sha512sum() {
     if ! command -v sha512sum && ! command -v shasum
     then
         fail "Some required programs are not available: sha512sum or shasum" \
-             "${troubleshooting_url}#some-required-programs-are-not-available"
+             "#some-required-programs-are-not-available"
     fi
 }
 
@@ -412,7 +412,7 @@ check_required_ports() {
     if [ -n "${unavailable_ports}" ]
     then
         fail "Some required ports are in use by something else: ${unavailable_ports%??}" \
-             "${troubleshooting_url}#some-required-ports-are-in-use-by-something-else"
+             "#some-required-ports-are-in-use-by-something-else"
     fi
 }
 
@@ -438,7 +438,7 @@ check_required_network_resources() {
     if [ -n "${unavailable_urls}" ]
     then
         fail "Some required network resources are not available: ${unavailable_urls%??}" \
-             "${troubleshooting_url}#some-required-network-resources-are-not-available"
+             "#some-required-network-resources-are-not-available"
     fi
 }
 
@@ -448,7 +448,7 @@ check_java() {
     if ! java --version
     then
         fail "Java is available, but it is not working" \
-             "${troubleshooting_url}#java-is-available-but-it-is-not-working"
+             "#java-is-available-but-it-is-not-working"
     fi
 }
 
