@@ -453,7 +453,7 @@ main() {
         *)    usage "Unknown installation scheme: ${scheme}" ;;
     esac
 
-    local work_dir="${HOME}/skupper-install-script"
+    local work_dir="${HOME}/.cache/skupper-install-script"
     local log_file="${work_dir}/install.log"
     local backup_dir="${work_dir}/backup"
 
