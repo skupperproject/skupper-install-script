@@ -72,11 +72,14 @@ def build():
     write("uninstall.sh", uninstall_sh)
 
 @command(passthrough=True)
-def test(verbose=False, passthrough_args=[]):
+def test(verbose=False, quiet=False, passthrough_args=[]):
     build()
 
     if verbose:
         passthrough_args.append("--verbose")
+
+    if quiet:
+        passthrough_args.append("--quiet")
 
     import tests
 

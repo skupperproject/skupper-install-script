@@ -22,7 +22,9 @@ jobs:
       - uses: actions/checkout@v3
       - run: dnf -y install busybox curl dash ksh mksh nc python /bin/ps sudo tar yash zsh
       - run: cd /usr/bin && ln -s busybox ash
-      - run: ./plano big-test --verbose
+      - run: ./plano test
+        env:
+          PLANO_COLOR: 1
   macos:
     runs-on: macos-latest
     steps:
@@ -30,7 +32,9 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - run: ./plano big-test --verbose
+      - run: ./plano test
+        env:
+          PLANO_COLOR: 1
   ubuntu:
     runs-on: ubuntu-latest
     container: ubuntu:latest
@@ -38,4 +42,6 @@ jobs:
       - uses: actions/checkout@v3
       - run: apt-get -qq update
       - run: apt-get -qq install curl netcat python3 sudo
-      - run: ./plano big-test --verbose
+      - run: ./plano test
+        env:
+          PLANO_COLOR: 1
