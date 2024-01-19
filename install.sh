@@ -424,7 +424,7 @@ usage() {
     fi
 
     cat <<EOF
-Usage: ${0} [OPTION...]
+Usage: install.sh [OPTION...]
 
 Install the Skupper command-line tool
 

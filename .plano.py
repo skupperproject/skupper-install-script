@@ -17,8 +17,7 @@
 # under the License.
 #
 
-import re
-
+from burly import *
 from plano import *
 
 @command
@@ -71,21 +70,6 @@ def build():
 
     write("install.sh", install_sh)
     write("uninstall.sh", uninstall_sh)
-
-def extract_boilerplate(code):
-    boilerplate = re.search(r"# BEGIN BOILERPLATE\n(.*?)\n# END BOILERPLATE", code, re.DOTALL)
-
-    if boilerplate:
-        return boilerplate.group(1).strip()
-
-def extract_functions(code):
-    functions = dict()
-    matches = re.finditer(r"\n(\w+)\s*\(\)\s+{\n.*?\n}", code, re.DOTALL)
-
-    for match in matches:
-        functions[match.group(1)] = match.group(0)
-
-    return functions
 
 @command
 def clean():

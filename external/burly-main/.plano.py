@@ -17,6 +17,7 @@
 # under the License.
 #
 
+from burly import *
 from plano import *
 
 @command
@@ -29,7 +30,7 @@ def test(verbose=False, coverage=False):
         if coverage:
             check_program("kcov")
 
-            run(f"kcov ~/coverage bats {'--trace' if verbose else ''} tests/main.sh")
+            run(f"kcov coverage bats {'--trace' if verbose else ''} tests/main.sh")
         else:
             run(f"bats {'--trace' if verbose else ''} tests/main.sh")
 
@@ -45,7 +46,6 @@ def lint():
     """
     Use shellcheck to scan for problems
     """
-
     check_program("shellcheck")
 
     run("shellcheck --shell sh --enable all --exclude SC3043,SC2310,SC2312 burly.sh")
@@ -61,7 +61,6 @@ def extract(*function_names):
     """
     Produce code containing only the named functions and some setup logic
     """
-
     code = read("burly.sh")
 
     boilerplate = extract_boilerplate(code)
@@ -71,25 +70,6 @@ def extract(*function_names):
 
     for name in function_names:
         print(funcs[name])
-
-def extract_boilerplate(code):
-    import re
-
-    boilerplate = re.search(r"# BEGIN BOILERPLATE\n(.*?)\n# END BOILERPLATE", code, re.DOTALL)
-
-    if boilerplate:
-        return boilerplate.group(1).strip()
-
-def extract_functions(code):
-    import re
-
-    functions = dict()
-    matches = re.finditer(r"\n(\w+)\s*\(\)\s+{\n.*?\n}", code, re.DOTALL)
-
-    for match in matches:
-        functions[match.group(1)] = match.group(0)
-
-    return functions
 
 @command
 def update_plano():

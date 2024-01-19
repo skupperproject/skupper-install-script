@@ -31,7 +31,7 @@ usage() {
     fi
 
     cat <<EOF
-Usage: ${0} [OPTION...]
+Usage: uninstall.sh [OPTION...]
 
 Uninstall the Skupper command-line tool
 
