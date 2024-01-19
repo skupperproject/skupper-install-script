@@ -71,47 +71,20 @@ def build():
     write("install.sh", install_sh)
     write("uninstall.sh", uninstall_sh)
 
+@command(passthrough=True)
+def test(verbose=False, passthrough_args=[]):
+    build()
+
+    if verbose:
+        passthrough_args.append("--verbose")
+
+    import tests
+
+    PlanoTestCommand(tests).main(passthrough_args)
+
 @command
 def clean():
     remove(find(".", "__pycache__"))
-
-@command
-def test(shell="sh", verbose=False, debug=False):
-    check_program(shell)
-
-    build()
-
-    if debug:
-        ENV["DEBUG"] = "1"
-
-    try:
-        run(f"{shell} {'-o igncr' if WINDOWS else ''} install.sh {'--verbose' if verbose else ''}".strip())
-        run(f"{shell} {'-o igncr' if WINDOWS else ''} uninstall.sh {'--verbose' if verbose else ''}".strip())
-    finally:
-        if debug:
-            del ENV["DEBUG"]
-
-@command
-def big_test(verbose=False, debug=False):
-    """
-    Run the tests against a range of shell interpreters
-    """
-    test(verbose=True, debug=debug)
-    test(verbose=False, debug=debug)
-
-    test(verbose=verbose, debug=True)
-    test(verbose=verbose, debug=False)
-
-    for shell in "ash", "bash", "dash", "ksh", "mksh", "yash", "zsh":
-        if which(shell):
-            test(shell=shell, verbose=verbose, debug=debug)
-
-    with working_env():
-        run(f"sh install.sh") # No existing installation and no existing backup
-        run(f"sh install.sh") # Creates a backup
-        run(f"sh install.sh") # Backs up the backup
-
-        run(f"sh uninstall.sh")
 
 @command
 def lint():

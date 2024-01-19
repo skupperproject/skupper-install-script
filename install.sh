@@ -509,12 +509,12 @@ main() {
     esac
 
     case "${scheme}" in
-        home) local skupper_bin_dir="${HOME}/.local/bin"     ;;
-        opt)  local skupper_bin_dir="/opt/skupper/bin"       ;;
+        home) local skupper_bin_dir="${TEST_INSTALL_PREFIX:-}${HOME}/.local/bin" ;;
+        opt)  local skupper_bin_dir="${TEST_INSTALL_PREFIX:-}/opt/skupper/bin" ;;
         *)    usage "Unknown installation scheme: ${scheme}" ;;
     esac
 
-    local work_dir="${HOME}/.cache/skupper-install-script"
+    local work_dir="${TEST_INSTALL_PREFIX:-}${HOME}/.cache/skupper-install-script"
     local log_file="${work_dir}/install.log"
     local backup_dir="${work_dir}/backup"
 
