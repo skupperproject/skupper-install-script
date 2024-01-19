@@ -22,41 +22,10 @@ troubleshooting_url="https://skupper.io/install/troubleshooting.html"
 
 @burly@
 
-usage() {
-    local error="${1:-}"
-
-    if [ -n "${error}" ]
-    then
-        printf "%b %s\n\n" "$(red "ERROR:")" "${*}"
-    fi
-
-    cat <<EOF
-Usage: ${0} [-hvy] [-s <scheme>]
-
-A script that installs the Skupper command-line tool
-
-Options:
-  -h            Print this help text and exit
-  -i            Operate in interactive mode
-  -s <scheme>   Select an installation scheme (default "home")
-  -v            Print detailed logging to the console
-
-Installation schemes:
-  home          Install to ~/.local/bin
-  opt           Install to /opt/skupper/bin
-EOF
-
-    if [ -n "${error}" ]
-    then
-        exit 1
-    fi
-
-    exit 0
-}
-
-# func <output-dir> -> release_version=<version>, release_file=<file>
-fetch_latest_skupper_release() {
-    local output_dir="$1"
+# func <version> <output-dir> -> release_version=<version>, release_file=<file>
+fetch_skupper_release() {
+    local version="$1"
+    local output_dir="$2"
 
     assert test -d "${output_dir}"
     assert program_is_available awk
@@ -87,11 +56,21 @@ fetch_latest_skupper_release() {
 
     local release_version_file="${output_dir}/release-version.txt"
 
-    log "Looking up the latest release version"
+    case "${version}" in
+        latest)
+            log "Looking up the latest release version"
 
-    run curl -sf "https://skupper.io/data/install.json" \
-        | awk 'match($0, /"version": "[0-9]+\.[0-9]+\.[0-9]+"/) { print substr($0, RSTART+12, RLENGTH-13) }' \
-        >| "${release_version_file}"
+            run curl -sf "https://skupper.io/data/install.json" \
+                | awk 'match($0, /"version": "[0-9]+\.[0-9]+\.[0-9]+"/) { print substr($0, RSTART+12, RLENGTH-13) }' \
+                      >| "${release_version_file}"
+            ;;
+        main)
+            echo "main-release" >| "${release_version_file}"
+            ;;
+        *)
+            echo "${version}" >| "${release_version_file}"
+            ;;
+    esac
 
     release_version="$(cat "${release_version_file}")"
 
@@ -99,22 +78,87 @@ fetch_latest_skupper_release() {
     log "Release version file: ${release_version_file}"
 
     local release_file_name="skupper-cli-${release_version}-${operating_system}-${architecture}.tgz"
+    # release_file is "returned"
     release_file="${output_dir}/${release_file_name}"
 
-    if [ ! -e "${release_file}" ]
-    then
-        log "Downloading the latest release"
+    assert test -n "${release_file}"
+    assert test -n "${release_file_name}"
+    assert test -n "${release_version}"
 
-        run curl -sfL --show-error -o "${release_file}" \
-            "https://github.com/skupperproject/skupper/releases/download/${release_version}/${release_file_name}"
+    if [ ! -e "${release_file}" ] || [ "${release_version}" = "main-release" ]
+    then
+        log "Downloading the ${release_version} release"
+
+        local release_url="https://github.com/skupperproject/skupper/releases/download/${release_version}/${release_file_name}"
+
+        if ! run curl -sfL --show-error -o "${release_file}" "${release_url}"
+        then
+            fail "No release found at ${release_url}"
+        fi
     else
         log "Using the cached release archive"
     fi
 
     log "Archive file: ${release_file}"
 
+    # release_version is "returned"
+    release_version="$(cat "${release_version_file}")"
+
     assert test -n "${release_version}"
     assert test -f "${release_file}"
+}
+
+usage() {
+    local error="${1:-}"
+
+    if [ -n "${error}" ]
+    then
+        printf "%b %s\n\n" "$(red "ERROR:")" "${*}"
+    fi
+
+    cat <<EOF
+Usage: ${0} [OPTION...]
+
+A script that installs the Skupper command-line tool
+
+Options:
+  -h, --help          Print this help text and exit
+  --version VERSION   Select the version (default "latest")
+  --scheme SCHEME     Select an installation scheme (default "home")
+  --interactive       Operate in interactive mode
+  --verbose           Print detailed logging to the console
+
+Versions:
+  latest              The latest release
+  main                The latest CI/CD release from main
+  X.Y.Z               A specific version
+
+Schemes:
+  home                Install to ~/.local/bin
+  opt                 Install to /opt/skupper/bin
+EOF
+
+    if [ -n "${error}" ]
+    then
+        exit 1
+    fi
+
+    exit 0
+}
+
+require_option_arg() {
+    local opt="$1"
+    local optarg="$2"
+
+    if [ -z "${optarg}" ]
+    then
+        usage "Option ${opt} is missing a required argument"
+    fi
+
+    case "${optarg}" in
+        -*) usage "Option ${opt} is missing a required argument" ;;
+        *) : ;;
+    esac
 }
 
 main() {
@@ -125,20 +169,37 @@ main() {
         enable_debug_mode
     fi
 
-    local scheme="home"
-    local verbose=
+    local version=latest
+    local scheme=home
     local interactive=
+    local verbose=
 
-    while getopts :his:v option
+    while [ $# -gt 0 ]
     do
-        case "${option}" in
-            h) usage              ;;
-            i) interactive=1      ;;
-            s) scheme="${OPTARG}" ;;
-            v) verbose=1          ;;
-            *) usage "Unknown option: ${OPTARG}" ;;
+        case "$1" in
+            -h|--help) usage ;;
+            --version)
+                require_option_arg "$1" "${2:-}"
+                version="$2"
+                shift
+                ;;
+            --scheme)
+                require_option_arg "$1" "${2:-}"
+                scheme="$2"
+                shift
+                ;;
+            --interactive) interactive=1 ;;
+            --verbose) verbose=1 ;;
+            *) usage "Unknown option: ${1}" ;;
         esac
+
+        shift
     done
+
+    case "${version}" in
+        latest|main|[0123456789].[0123456789].[0123456789]) ;;
+        *) usage "Illegal version argument: ${version}" ;;
+    esac
 
     case "${scheme}" in
         home) local skupper_bin_dir="${HOME}/.local/bin"     ;;
@@ -184,9 +245,9 @@ main() {
 
         print_result "OK"
 
-        print_section "Downloading the latest release"
+        print_section "Downloading the release"
 
-        fetch_latest_skupper_release "${work_dir}"
+        fetch_skupper_release "${version}" "${work_dir}"
 
         print_result "OK"
 

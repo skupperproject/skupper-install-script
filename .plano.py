@@ -101,8 +101,8 @@ def test(shell="sh", verbose=False, debug=False):
         ENV["DEBUG"] = "1"
 
     try:
-        run(f"{shell} {'-o igncr' if WINDOWS else ''} install.sh {'-v' if verbose else ''}".strip())
-        run(f"{shell} {'-o igncr' if WINDOWS else ''} uninstall.sh {'-v' if verbose else ''}".strip())
+        run(f"{shell} {'-o igncr' if WINDOWS else ''} install.sh {'--verbose' if verbose else ''}".strip())
+        run(f"{shell} {'-o igncr' if WINDOWS else ''} uninstall.sh {'--verbose' if verbose else ''}".strip())
     finally:
         if debug:
             del ENV["DEBUG"]

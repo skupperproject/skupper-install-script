@@ -31,19 +31,19 @@ usage() {
     fi
 
     cat <<EOF
-Usage: ${0} [-hvy] [-s <scheme>]
+Usage: ${0} [OPTION...]
 
 A script that uninstalls the Skupper command-line tool
 
 Options:
-  -h            Print this help text and exit
-  -i            Operate in interactive mode
-  -s <scheme>   Select the installation scheme (default "home")
-  -v            Print detailed logging to the console
+  -h, --help          Print this help text and exit
+  --scheme SCHEME     Select an installation scheme (default "home")
+  --interactive       Operate in interactive mode
+  --verbose           Print detailed logging to the console
 
-Installation schemes:
-  home          Install to ~/.local and ~/.config
-  opt           Install to /opt, /var/opt, and /etc/opt
+Schemes:
+  home                Install to ~/.local/bin
+  opt                 Install to /opt/skupper/bin
 EOF
 
     if [ -n "${error}" ]
@@ -54,6 +54,21 @@ EOF
     exit 0
 }
 
+require_option_arg() {
+    local opt="$1"
+    local optarg="$2"
+
+    if [ -z "${optarg}" ]
+    then
+        usage "Option ${opt} is missing a required argument"
+    fi
+
+    case "${optarg}" in
+        -*) usage "Option ${opt} is missing a required argument" ;;
+        *) : ;;
+    esac
+}
+
 main() {
     enable_strict_mode
 
@@ -62,19 +77,25 @@ main() {
         enable_debug_mode
     fi
 
-    local scheme="home"
-    local verbose=
+    local scheme=home
     local interactive=
+    local verbose=
 
-    while getopts :his:v option
+    while [ $# -gt 0 ]
     do
-        case "${option}" in
-            h) usage              ;;
-            i) interactive=1      ;;
-            s) scheme="${OPTARG}" ;;
-            v) verbose=1          ;;
-            *) usage "Unknown option: ${OPTARG}" ;;
+        case "$1" in
+            -h|--help) usage ;;
+            --scheme)
+                require_option_arg "$1" "${2:-}"
+                scheme="$2"
+                shift
+                ;;
+            --interactive) interactive=1 ;;
+            --verbose) verbose=1 ;;
+            *) usage "Unknown option: ${1}" ;;
         esac
+
+        shift
     done
 
     case "${scheme}" in
