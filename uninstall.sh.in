@@ -33,7 +33,7 @@ usage() {
     cat <<EOF
 Usage: ${0} [OPTION...]
 
-A script that uninstalls the Skupper command-line tool
+Uninstall the Skupper command-line tool
 
 Options:
   -h, --help          Print this help text and exit
@@ -42,8 +42,8 @@ Options:
   --verbose           Print detailed logging to the console
 
 Schemes:
-  home                Install to ~/.local/bin
-  opt                 Install to /opt/skupper/bin
+  home                Uninstall from ~/.local/bin
+  opt                 Uninstall from /opt/skupper/bin
 EOF
 
     if [ -n "${error}" ]

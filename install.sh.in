@@ -119,7 +119,7 @@ usage() {
     cat <<EOF
 Usage: ${0} [OPTION...]
 
-A script that installs the Skupper command-line tool
+Install the Skupper command-line tool
 
 Options:
   -h, --help          Print this help text and exit
