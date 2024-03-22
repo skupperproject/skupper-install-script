@@ -12,7 +12,7 @@ To install plano globally for the current user:
 make install
 ~~~
 
-## Example 1
+## A self-contained command with subcommands
 
 `~/.local/bin/widget`:
 ~~~ python
@@ -37,7 +37,7 @@ Hello
 OK (0s)
 ~~~
 
-## Example 2
+## A self-contained test command
 
 `~/.local/bin/widget-test`:
 ~~~ python
@@ -46,7 +46,7 @@ from plano import *
 
 @test
 def check():
-    run("widget --message Yo")
+    run("widget greeting --message Yo")
 
 if __name__ == "__main__":
     PlanoTestCommand(sys.modules[__name__]).main()
@@ -71,8 +71,49 @@ Failed:    0
 All tests passed
 ~~~
 
+## Programmatic test definition
+
+~~~ python
+from plano import *
+
+def test_widget(message):
+    run(f"widget greeting --message {message}")
+
+for message in "hi", "lo", "in between":
+    add_test(f"message-{message}", test_widget, message)
+~~~
+
 ## Things to know
 
 * The plano command accepts command sequences in the form "this,that"
   (no spaces).  The command arguments are applied to the last command
   only.
+
+## Dependencies
+
+PyYAML:
+
+~~~
+pip install pyyaml
+~~~
+
+## Setting up Plano as an embedded dependency
+
+Change directory to the root of your project:
+
+    cd <project-dir>/
+
+Add the Plano code as a subdirectory:
+
+    mkdir -p external
+    curl -sfL https://github.com/ssorj/plano/archive/main.tar.gz | tar -C external -xz
+    mv external/plano-main external/plano
+
+Symlink the Plano library into your `python` directory:
+
+    mkdir -p python
+    ln -s ../external/plano/src/plano python/plano
+
+Copy the `plano` command into the root of your project:
+
+    cp external/plano/bin/plano plano

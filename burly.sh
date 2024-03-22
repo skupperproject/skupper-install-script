@@ -1,1 +1,1 @@
-external/burly-main/burly.sh
+external/burly/burly.sh

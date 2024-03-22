@@ -19,6 +19,7 @@
 
 from burly import *
 from plano import *
+from plano.github import *
 
 @command
 def build():
@@ -58,7 +59,7 @@ def build():
         burly_out.append(functions[name])
 
     install_sh_in = read("install.sh.in")
-    install_sh = replace(install_sh_in, "@burly@", "\n".join(burly_out))
+    install_sh = string_replace(install_sh_in, "@burly@", "\n".join(burly_out))
 
     burly_out = [boilerplate]
 
@@ -66,7 +67,7 @@ def build():
         burly_out.append(functions[name])
 
     uninstall_sh_in = read("uninstall.sh.in")
-    uninstall_sh = replace(uninstall_sh_in, "@burly@", "\n".join(burly_out))
+    uninstall_sh = string_replace(uninstall_sh_in, "@burly@", "\n".join(burly_out))
 
     write("install.sh", install_sh)
     write("uninstall.sh", uninstall_sh)
@@ -105,6 +106,4 @@ def update_burly():
     """
     Update the embedded Burly repo
     """
-    make_dir("external")
-    remove("external/burly-main")
-    run("curl -sfL https://github.com/ssorj/burly/archive/main.tar.gz | tar -C external -xz", shell=True)
+    update_external_from_github("external/burly", "ssorj", "burly")
