@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: apt-get -qq update
-      - run: apt-get -qq install curl netcat python3 sudo
+      - run: apt-get -qq install curl netcat-openbsd python3 sudo
       - run: ./plano test
         env:
           PLANO_COLOR: 1
